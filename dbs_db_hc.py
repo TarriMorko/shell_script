@@ -17,12 +17,13 @@
 import os
 import glob
 import tarfile
-import tempfile
+import shutil
 import subprocess as sub
 # 先找一個解壓縮後的位置
 # D:\temp\20170621_DB2_HC
 
 WORK_DIR = "D:\\temp\\20170621_DB2_HC"
+SNAPSHOTANALYZER_DIR = "C:\\IBMtools\\snapshotAnalyzer_hc\\"
 os.chdir(WORK_DIR)
 # for db2_file in glob.glob('*_HC*'):
 #     database_name = db2_file[0:db2_file.find('_HC')]
@@ -61,7 +62,7 @@ def extract_and_sort_out():
 def create_snapshot(snapshot):
     '''搞 snapshot.'''
     current_dir = os.getcwd()
-    os.chdir('C:\\IBMtools\\snapshotAnalyzer_hc\\')
+    os.chdir(SNAPSHOTANALYZER_DIR)
     sub.call([
         'java', '-cp', "SnapshotExtractor.jar",
         'com.ibm.db2.utils.SnapshotExtractor', snapshot], shell=True)
@@ -70,23 +71,26 @@ def create_snapshot(snapshot):
 
 def change_new_line(snapshot):
     '''需要一個函式去修改 snapshot 裡面的換行字元.'''
-    
-
-    # with open(snapshot) as inp, open('output.txt', 'w') as out:
-    #     txt = inp.read()
-    #     txt = txt.replace('\n', '\r\n')
-    #     out.write(txt)
-    # 這一段需要改良
+    # 這一段需要改良 寫的真是醜
+    with open(snapshot) as inp, open('temp.txt', 'w') as out:
+        txt = inp.read()
+        txt = txt.replace('\n', '\r\n')
+        out.write(txt)
+    os.remove(snapshot)
+    os.rename('temp.txt', snapshot)
 
 
 def find_snapshot(target_dir):
-    ''' 再做一個函式，遍歷所有的子目錄，把 *snapshot* 都送到 Analyzer 幹一下.'''
+    ''' 再做一個函式，遍歷 WORK_DIR 所有的子目錄，把 *snapshot* 都送到 Analyzer 幹一下.'''
     for entry in os.scandir(target_dir):
         # print(entry.name)
         if entry.name.find('snapshot') >= 0: # 如果找到叫 snapshot 的
             snap_full_path = WORK_DIR + entry.path[1:]
             print(snap_full_path)
+            change_new_line(snap_full_path)
             create_snapshot(snap_full_path)
+            # 產生好的 snapshot 會增加 .csv 後綴
+            # shutil.copy(SNAPSHOTANALYZER_DIR + entry.name, '.')
             # snap_full_path 是 snapshot 的完整路徑
             # 我為什麼不用 glob ? 腦殘了
 
@@ -94,17 +98,14 @@ def find_snapshot(target_dir):
             find_snapshot(entry.path)
 
 
-    # for file in glob.glob('*snapshot*'):
-    #     sub.call([
-    #         'java', '-cp', 'SnapshotExtractor.jar',
-    #         'com.ibm.db2.utils.SnapshotExtractor', file], shell=True)    
-
 def main():
     '''程式進入點.'''
+    # 下面這個函式是可以解壓縮然後歸類啦.....可是他媽的怎麼每個壓縮檔裡面格式都不一樣
     # extract_and_sort_out()
-    # 是可以解壓縮然後歸類啦.....可是他媽的怎麼每個壓縮檔裡面格式都不一樣
 
     # 再做一個函式，遍歷所有的子目錄，把 *snapshot* 都送到 Analyzer 幹一下
     find_snapshot('.')
+
+    # 測試一下 pydocx
 
 main()
