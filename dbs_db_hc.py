@@ -19,6 +19,7 @@ import glob
 import tarfile
 import shutil
 import subprocess as sub
+import docx
 # 先找一個解壓縮後的位置
 # D:\temp\20170621_DB2_HC
 
@@ -35,13 +36,10 @@ os.chdir(WORK_DIR)
 #         # 然後 cd 進去解壓縮 all
 
 def get_database_name():
-    '''搜尋有 _HC 字樣的 gz 檔，把前面的字串當作資料庫名稱.
-    
-    databases = [x for x in get_database_name()]
-    # 要用的時候就這樣 ['ACS', 'ARCHIVE', 'CARDDB', 'CMS', 'FCS', 'FEP']
-    '''
-    for db2_file in glob.glob('*_HC.tar.gz'):
-        yield db2_file[0:db2_file.find('_HC.tar.gz')]
+    '''搜尋有 _HC 字樣的 gz 檔，把前面的字串當作資料庫名稱.'''
+    return [x[0:x.find('_HC.tar.gz')] for x in glob.glob('*_HC.tar.gz')]
+
+
 
 def extract_and_sort_out():
     '''解壓縮檔案，把 log 依照 db 分類到各自的資料夾.'''
@@ -98,14 +96,33 @@ def find_snapshot(target_dir):
             find_snapshot(entry.path)
 
 
+
+
+def put_log_in_docx():
+    '''我需要一個函式，接收一個字串(mtrk)、使用這個字串去各個 db 資料夾
+    得到含有該字串的文字檔，並將文字檔中的資料放進 docx .'''
+    log_type = ['mtrk', 'dbptnmem', 'buff_']
+    for log in log_type:
+        for database in get_database_name():
+            for file in glob.glob(database + '\\*' + log + '*'):
+                print(file)
+            # for file in glob.glob(database + '\\' + database + '_HC\\*' + log + '*'):
+            #     print(file)
+
+
+
+
+
 def main():
     '''程式進入點.'''
     # 下面這個函式是可以解壓縮然後歸類啦.....可是他媽的怎麼每個壓縮檔裡面格式都不一樣
     # extract_and_sort_out()
 
     # 再做一個函式，遍歷所有的子目錄，把 *snapshot* 都送到 Analyzer 幹一下
-    find_snapshot('.')
+    # find_snapshot('.')
 
-    # 測試一下 pydocx
+    # 得到資料庫名稱之後，導入各個 log
+    # 找到 db2mtrk
+    put_log_in_docx()
 
 main()
