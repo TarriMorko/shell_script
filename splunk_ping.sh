@@ -3,14 +3,14 @@
 #
 # splunk_ping.sh
 #
-# 讀入一個字典檔 HOS_MAPPING_FILE, 裡面是兩台成對的機器 A, B，如果本機是 A 就 ping B
+# 讀入一個字典檔 HOST_MAPPING_FILE, 裡面是兩台成對的機器 A, B，如果本機是 A 就 ping B
 # 是 B 就 ping A
 # 另有一個 IP_TABLE 檔, hostname 與 ip 的對應需從此檔查詢
 # 這個 script 必須相容於 AIX 5.3/7.1
 
 IP_TABLE="splunk_ping_iptable.txt"
 # hostname ip 
-HOS_MAPPING_FILE="splunk_ping_map.txt"
+HOST_MAPPING_FILE="splunk_ping_map.txt"
 # couple host
 
 
@@ -46,12 +46,12 @@ get_ip_from_host() {
 
 get_target_host() {
     #######################################
-    # 從 $HOS_MAPPING_FILE 得到與本機對應的主機 ip
+    # 從 $HOST_MAPPING_FILE 得到與本機對應的主機 ip
     # Globals:
-    #    $HOS_MAPPING_FILE
+    #    $HOST_MAPPING_FILE
     # Returns:
     #    0 與本機對應的機器的 ip
-    #    1 echo "Can't find my hostname in $HOS_MAPPING_FILE !!"
+    #    1 echo "Can't find my hostname in $HOST_MAPPING_FILE !!"
     #######################################    
     local _thishost
     local _thisip
@@ -73,10 +73,10 @@ get_target_host() {
                 get_ip_from_host $_server_pair_left && return 0
             fi
         fi
-    done <$HOS_MAPPING_FILE
+    done <$HOST_MAPPING_FILE
 
-    echo "Can't find my hostname in $HOS_MAPPING_FILE !!"
-    return 1
+    
+    exit 1
 }
 
 
@@ -86,7 +86,9 @@ ping_with_packet_loss(){
 
 
 main() {
-    ip=$(get_target_host)
+    ip=$(get_target_host)  \
+        || echo "Can't find my hostname in $HOST_MAPPING_FILE !!" ;exit 1
     ping_with_packet_loss $ip
 }
 main
+exit 0
