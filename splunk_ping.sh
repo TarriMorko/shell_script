@@ -2,31 +2,57 @@
 #
 #
 # splunk_ping.sh
-
-# 維護一個 dict, 裡面是兩台機器A、B，如果我是 A 就 ping B
+#
+# 讀入一個字典檔 HOS_MAPPING_FILE, 裡面是兩台成對的機器 A, B，如果本機是 A 就 ping B
 # 是 B 就 ping A
-# 這個 script 必須相容於 AIX 5.3/7.1, 幹 Linux 也放進去算了
+# 另有一個 IP_TABLE 檔, hostname 與 ip 的對應需從此檔查詢
+# 這個 script 必須相容於 AIX 5.3/7.1
 
-# 那首先的 dict 要怎麼寫呢
-# 乾脆就隨便一個對應檔好了
+IP_TABLE="splunk_ping_iptable.txt"
+# hostname ip 
+HOS_MAPPING_FILE="splunk_ping_map.txt"
+# couple host
+
 
 get_ip_from_host() {
-    # 輸入一個 hostname 參數, 從 splunk_ping_iptable.txt 獲得跟 $1 對應的 ip
+    #######################################
+    # 給一個 hostname 參數, 從 $IP_TABLE 獲得 hostname 參數對應的 ip
+    # Globals:
+    #    $IP_TABLE
+    # Arguments:
+    #    $hostname
+    # Returns:
+    #    0 echo $_ip
+    #    1 echo "Can't find any ip with host $1"
+    # Example:
+    #    somehosts_ip=$(get_ip_from_host twnbap)
+    #######################################
     local _target_hostname=$1
     local _host
     local _ip
     while read line; do
         _host=$(echo $line | awk '{print $1}')
         _ip=$(echo $line | awk '{print $2}')
-
         if [ "${_target_hostname}" = "${_host}" ]; then
             echo $_ip
+            return 0
         fi
-    done < splunk_ping_iptable.txt
+    done < $IP_TABLE
+
+    echo "Can't find any ip with host $1"
+    return 1
 }
 
+
 get_target_host() {
-    # 從 splunk_ping_map.txt 得到與本機對應的 hostname 跟 ip
+    #######################################
+    # 從 $HOS_MAPPING_FILE 得到與本機對應的主機 ip
+    # Globals:
+    #    $HOS_MAPPING_FILE
+    # Returns:
+    #    0 與本機對應的機器的 ip
+    #    1 echo "Can't find my hostname in $HOS_MAPPING_FILE !!"
+    #######################################    
     local _thishost
     local _thisip
     local _server_pair_left
@@ -37,21 +63,30 @@ get_target_host() {
     while read line; do
         echo "${line}" | grep -q $_thishost
         if [ $? -eq 0 ]; then
-            # get server pair, EX: taaripc, taaripcdb
             _server_pair_left=$(echo $line | awk '{print $1}')
             _server_pair_right=$(echo $line | awk '{print $2}')
+
             if [ "${_thishost}" = "${_server_pair_left}" ]; then
-                # echo $_server_pair_right
-                get_ip_from_host $_server_pair_right
+                # 如果本機名稱在左，就查詢右邊機器的 ip
+                get_ip_from_host $_server_pair_right && return 0
             else
-                # echo $_server_pair_left
-                get_ip_from_host $_server_pair_left
+                get_ip_from_host $_server_pair_left && return 0
             fi
         fi
-    done <splunk_ping_map.txt
+    done <$HOS_MAPPING_FILE
+
+    echo "Can't find my hostname in $HOS_MAPPING_FILE !!"
+    return 1
 }
 
+
+ping_with_packet_loss(){
+    ping -c 5 $1 | grep "packet"
+}
+
+
 main() {
-    get_target_host
+    ip=$(get_target_host)
+    ping_with_packet_loss $ip
 }
 main
