@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "Bash-Debug (select script from list of sh files)",
+            "type": "bashdb",
+            "request": "launch",
+            // "scriptPath": "${command.SelectScriptName}",
+            "scriptPath": "/src/shell_script/splunk_ping.sh",
+            "commandLineArguments": "",
+            "windows": {
+                "bashPath": "C:\\Windows\\sysnative\\bash.exe"
+            },
+            "linux": {
+                "bashPath": "bash"
+            },
+            "osx": {
+                "bashPath": "bash"
+            }
+        }
+    ]
+}

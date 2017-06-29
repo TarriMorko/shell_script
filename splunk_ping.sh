@@ -13,7 +13,6 @@ IP_TABLE="splunk_ping_iptable.txt"
 HOST_MAPPING_FILE="splunk_ping_map.txt"
 # couple host
 
-
 get_ip_from_host() {
     #######################################
     # 給一個 hostname 參數, 從 $IP_TABLE 獲得 hostname 參數對應的 ip
@@ -37,12 +36,11 @@ get_ip_from_host() {
             echo $_ip
             return 0
         fi
-    done < $IP_TABLE
+    done <$IP_TABLE
 
     echo "Can't find any ip with host $1"
     exit 1
 }
-
 
 get_target_host() {
     #######################################
@@ -59,7 +57,8 @@ get_target_host() {
     local _server_pair_right
 
     _thishost=$(hostname)
-    _thisip=$(get_ip_from_host $_thishost)
+    _thisip=$(get_ip_from_host $_thishost) || echo $_thisip
+    exit 1
     while read line; do
         echo $line
         echo "${line}" | grep -q $_thishost
@@ -76,19 +75,17 @@ get_target_host() {
         fi
     done <$HOST_MAPPING_FILE
 
-    
+    echo "Can't find my hostname in $HOST_MAPPING_FILE !!"
     exit 1
 }
 
-
-ping_with_packet_loss(){
+ping_with_packet_loss() {
     ping -c 5 $1 | grep "packet"
 }
 
-
 main() {
-    ip=$(get_target_host)  \
-        || echo "Can't find my hostname in $HOST_MAPPING_FILE !!" ;exit 1
+    ip=$(get_target_host) || echo $ip
+    exit 1
     ping_with_packet_loss $ip
 }
 main
