@@ -40,7 +40,7 @@ get_ip_from_host() {
     done < $IP_TABLE
 
     echo "Can't find any ip with host $1"
-    return 1
+    exit 1
 }
 
 
@@ -61,6 +61,7 @@ get_target_host() {
     _thishost=$(hostname)
     _thisip=$(get_ip_from_host $_thishost)
     while read line; do
+        echo $line
         echo "${line}" | grep -q $_thishost
         if [ $? -eq 0 ]; then
             _server_pair_left=$(echo $line | awk '{print $1}')
