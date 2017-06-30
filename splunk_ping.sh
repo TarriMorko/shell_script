@@ -52,16 +52,12 @@ get_target_host() {
     #    1 echo "Can't find my hostname in $HOST_MAPPING_FILE !!"
     #######################################    
     local _thishost
-    local _thisip
     local _server_pair_left
     local _server_pair_right
 
     _thishost=$(hostname)
-    _thisip=$(get_ip_from_host $_thishost) || echo $_thisip
-    exit 1
     while read line; do
-        echo $line
-        echo "${line}" | grep -q $_thishost
+        echo "${line}" | grep -q -w $_thishost
         if [ $? -eq 0 ]; then
             _server_pair_left=$(echo $line | awk '{print $1}')
             _server_pair_right=$(echo $line | awk '{print $2}')
@@ -79,14 +75,16 @@ get_target_host() {
     exit 1
 }
 
-ping_with_packet_loss() {
+ping_with_packet_loss_from() {
     ping -c 5 $1 | grep "packet"
 }
 
 main() {
-    ip=$(get_target_host) || echo $ip
-    exit 1
-    ping_with_packet_loss $ip
+    ip=$(get_target_host) || {
+        echo $ip
+        exit 1
+    }
+    ping_with_packet_loss_from $ip
 }
 main
 exit 0
