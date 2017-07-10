@@ -7,7 +7,7 @@
             "type": "bashdb",
             "request": "launch",
             // "scriptPath": "${command.SelectScriptName}",
-            "scriptPath": "/src/shell_script/splunk_ping.sh",
+            "scriptPath": "/mnt/c/src/shell_script/test.sh",
             "commandLineArguments": "",
             "windows": {
                 "bashPath": "C:\\Windows\\sysnative\\bash.exe"
