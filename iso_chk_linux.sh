@@ -1,4 +1,12 @@
-#!/bin/ksh
+#!/bin/sh
+#
+#
+
+if ! [ -f /etc/redhat-release ]; then
+    echo "This script is for redhat ONLY."
+    exit 0
+fi
+
 wrkdir=/home/spos2
 hname=`hostname`
 outfil=/home/spos2/$hname.iso_chk_linux.txt
@@ -24,11 +32,18 @@ echo "==================================" >> $outfil
 echo " cat /etc/login.defs|grep PASS_MAX_DAYS"  >> $outfil
 cat /etc/login.defs|grep PASS_MAX_DAYS |grep -v "^#" >> $outfil
 echo "---------   ----------  ----------- " >> $outfil
-echo "pam-config -q --cracklib" >> $outfil 
-pam-config -q --cracklib >> $outfil
+# echo "pam-config -q --cracklib" >> $outfil 
+# pam-config -q --cracklib >> $outfil
+echo "grep -R "crack" --color" >> $outfil # ·s¥[ªº
+grep -R "crack" --color >> $outfil        # ·s¥[ªº
+
 echo "----------------------------------" >> $outfil
-echo "pam-config -q --pwhistory ">> $outfil
-pam-config -q --pwhistory >> $outfil
+# echo "pam-config -q --pwhistory ">> $outfil
+# pam-config -q --pwhistory >> $outfil
+
+echo "egrep -i -o remember=[0-9]  /etc/pam.d/system-auth">> $outfil # ·s¥[ªº
+egrep -i -o remember=[0-9] /etc/pam.d/system-auth >> $outfil        # ·s¥[ªº
+
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 
@@ -88,14 +103,14 @@ echo "  " >> $outfil
 
 
 
-echo "2-7 ½T»{¨t²Î¹w³]¨Ï¥ÎªÌ±b¸¹ªºumask­È¬°027¬" >> $outfil
+echo "2-7 ½T»{¨t²Î¹w³]¨Ï¥ÎªÌ±b¸¹ªºumask­È¬°027?" >> $outfil
 echo "==================================" >> $outfil
 echo "cat /etc/login.defs |grep UMASK |grep 027"  >> $outfil
 cat /etc/login.defs |grep UMASK |grep 027 >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 
-echo "2-8 ÀË¬drootµn¤J®É¬O§_°õ¦æ«Drootªºµ{¦¡­"  >> $outfil
+echo "2-8 ÀË¬drootµn¤J®É¬O§_°õ¦æ«Drootªºµ{¦¡?"  >> $outfil
 echo "==================================" >> $outfil
 echo "ls -l /root/.profile" >> $outfil
 ls -l /root/.profile >> $outfil
@@ -103,7 +118,7 @@ cat /root/.profile  >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 
-echo "2-9 ½T»{¬O§_Ãö³¬¤£¥²»Ý­nµn¤JÅv­­ªº¨t²Î¹w³]±b¸¹­"  >> $outfil
+echo "2-9 ½T»{¬O§_Ãö³¬¤£¥²»Ý­nµn¤JÅv­­ªº¨t²Î¹w³]±b¸¹?"  >> $outfil
 echo "==================================" >> $outfil
 echo "¦P 2-2 /etc/passwd ÀÉ" >> $outfil
 cat /etc/passwd |grep adm:x |grep -v itmadm >> $outfil
@@ -136,6 +151,7 @@ netstat -an |grep :22|grep LISTEN  >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 
+
 echo "4-1 ½T»{¨t²Î¤§½]®Ö¥\¯à¬O§_¤w¸g±Ò°Ê¡H "  >> $outfil
 echo "==================================" >> $outfil
 echo "4-1-1 ps -ef|grep audit |grep -v grep "  >> $outfil
@@ -155,7 +171,7 @@ echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 
 
-echo "5-1 ½T»{cron³]©w¤§¾A·í©Ê,¤Îcrontab file(/var/spool/cron/tabs)¬O§_¾A·í«OÅ@Å "  >> $outfil
+echo "5-1 ½T»{cron³]©w¤§¾A·í©Ê,¤Îcrontab file(/var/spool/cron/tabs)¬O§_¾A·í«OÅ@? "  >> $outfil
 echo "==================================" >> $outfil
 echo '5-1-1 crontab -l |grep -v "^#"'  >> $outfil
 crontab -l |grep -v "^#"  >> $outfil
@@ -183,19 +199,20 @@ echo "  " >> $outfil
 
 echo "6-2 ½T»{¥u¶}±Ò¥²­n¤§³q°T°ð¤ÎTCP/IPªA°È"  >> $outfil
 echo "==================================" >> $outfil
-echo "cat /etc/xinetd.conf |grep -v "^#""  >> $outfil
-cat /etc/xinetd.conf |grep -v "^#"  >> $outfil
-echo "----------------------------------" >> $outfil
-echo "chkconfig --list |tail -18 "  >> $outfil
-chkconfig --list |tail -18   >> $outfil
+# echo "cat /etc/xinetd.conf |grep -v "^#""  >> $outfil
+# cat /etc/xinetd.conf |grep -v "^#"  >> $outfil
+# echo "----------------------------------" >> $outfil
+echo "chkconfig --list  "  >> $outfil
+chkconfig --list    >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 
 
+# §ä¤£¨ì
 echo "7-1 ½T»{¥Ø«e¬O§_¤w§ó·s¦Ü­×¸Éµ{¦¡¤§³Ì¾Aª©¥»¡C " >> $outfil
 echo "==================================" >> $outfil
 echo "ºû«ù¥b¦~«e¤§³Ì¾Aª©¥»"   >> $outfil
-sam --no-header-sig-check --no-rpm-verify --no-rpm-verify-md5 --skip-unmatched-prod --strict-repo-description --no-log-timestamp |grep name:|awk '{print $2}'  >> $outfil
+# sam --no-header-sig-check --no-rpm-verify --no-rpm-verify-md5 --skip-unmatched-prod --strict-repo-description --no-log-timestamp |grep name:|awk '{print $2}'  >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 

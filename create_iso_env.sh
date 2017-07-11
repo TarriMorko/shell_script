@@ -18,7 +18,7 @@ authconfig --savebackup=./authconfig_backup
 cp -p /etc/passwd /etc/passwd.bak
 cp -p /etc/audit/audit.rules /etc/audit/audit.rules.bak
 cp -p /etc/audit/auditd.conf /etc/audit/auditd.conf.bak
-cp -p /etc/profile.local /etc/profile.local.bak
+# cp -p /etc/profile.local /etc/profile.local.bak
 cp -p /etc/profile /etc/profile.bak
 #cp -p /etc/cron.allow /etc/cron.allow.bak
 cp -p /etc/services /etc/services.bak
@@ -36,12 +36,26 @@ cat /etc/passwd | grep root >> /etc/passwd.tmp
 cat /etc/passwd.tmp > /etc/passwd
 rm /etc/passwd.tmp
 ##############
-tar -xvpPf /tmp/tar_iso.tar
+tar -xvpPf /tmp/tar_iso_redhat.tar
 
 # /etc/rc.d/sshd  restart
 service sshd restart
 # /etc/rc.d/syslog restart
 /etc/init.d/rsyslog restart
+
+chkconfig autofs off
+chkconfig blk-availability off
+chkconfig cpuspeed off
+chkconfig haldaemon off
+chkconfig ip6tables off
+chkconfig lvm2-monitor off
+chkconfig mdmonitor off
+chkconfig messagebus off
+chkconfig netfs off
+chkconfig cups off
+chkconfig portreserve off
+chkconfig bluetooth off
+chkconfig httpd off
 
 mkdir -p /aulog/audreport
 chmod -R 700 /aulog/audreport
