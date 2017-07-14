@@ -7,7 +7,8 @@
             "type": "bashdb",
             "request": "launch",
             // "scriptPath": "${command.SelectScriptName}",
-            "scriptPath": "/mnt/c/src/shell_script/compare_account.sh",
+            // "scriptPath": "/mnt/c/src/shell_script/compare_account.sh",
+            "scriptPath": "/src/shell_script/compare_account.sh",
             "commandLineArguments": "",
             "windows": {
                 "bashPath": "C:\\Windows\\sysnative\\bash.exe"

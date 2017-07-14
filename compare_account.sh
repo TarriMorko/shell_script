@@ -20,9 +20,12 @@
 # Q: 怎麼避免成對的機器被比對兩次？
 # A: 我迭代一次左列表就可以了, 以左邊為準
 
+diff_temp="$RANDOM"_temp
 HCAMP_MAPPING_FILE="splunk_ping_map.txt"
 
 create_today_serverlist(){
+    # 搜尋 tsmbk 的 /source/opuse 目錄之下所有今天產生的子目錄
+    # 將子目錄名稱去掉日期後返回
     find /source/opuse/*$(date +%Y%m%d)* -maxdepth 1 -type d \
         | awk -F'/' '{print $4}' \
         | awk -F'_' '{print $1}'
@@ -35,7 +38,7 @@ compare_user_of_this_server(){
     # Globals:
     #    $HCAMP_MAPPING_FILE
     # Arguments:
-    #    $hostname
+    #    $_server
     # Returns:
     #    0
     #    1
@@ -50,12 +53,49 @@ compare_user_of_this_server(){
             _server_pair_right=$(echo $line | awk '{print $2}')
 
             if [ "${_server}" = "${_server_pair_left}" ]; then
-                # 如果本機名稱在左，就查詢右邊機器的 ip
+                # 如果本機名稱在左，就進入比對函式
+                # 這樣做是為了避免重複比對
                 echo "去做比對"
+                diff_etc_passwd_of_there_two_server \
+                    $_server_pair_left $_server_pair_right
             fi
         fi
     done <$HCAMP_MAPPING_FILE
 }
+
+
+diff_etc_passwd_of_there_two_server(){
+    #######################################
+    # 給兩個主機名稱，去 tsmbk 上的某資料夾尋找他們今天的 passwd 然後做帳號比對
+    # Globals:
+    # Arguments:
+    #    $server $server2
+    # Returns:
+    #    0
+    #    1
+    # Example:
+    #    compare_user_of_this_server server1
+    #######################################   
+    local _server1=$1
+    local _server2=$2
+    echo $_server1, $_server2
+    diff /source/opuse/${_server1}_$(date +%Y%m%d)/passwd \
+        /source/opuse/${_server2}_$(date +%Y%m%d)/passwd >$diff_temp
+    if [ $? -eq 0 ]; then
+        echo "$_server1 $_server2 兩台帳號一樣喔"
+        return 0
+    fi
+
+    echo "============================================="
+    echo $_server1 與 $_server2 存在帳號差異
+    awk -v _server1=$_server1 \
+        -v _server2=$_server2 \
+        /\</'{print _server1,"多了此帳號", $2}\
+        /\>/{print _server2, "多了此帳號",$2}' $diff_temp
+    # /source/opuse/a1_20170714/passwd.txt
+    # /source/opuse/b1_20170714/passwd.txt
+}
+
 
 main(){
     server_list=$(create_today_serverlist) || {
@@ -64,8 +104,8 @@ main(){
     }
     for server in $server_list
     do
-        compare_user_of_this_server server
+        compare_user_of_this_server $server
     done
-    
+    rm $diff_temp
 }
 main
