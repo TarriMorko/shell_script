@@ -7,6 +7,9 @@ if ! [ -f /etc/redhat-release ]; then
     exit 0
 fi
 
+export LANG=POSIX
+export LC_ALL=POSIX
+
 cp -p /etc/issue /etc/issue.bak
 cp -p /etc/issue.net  /etc/issue.net.bak
 cp -p /etc/login.defs  /etc/login.defs.bak
