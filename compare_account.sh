@@ -24,11 +24,16 @@ diff_temp="$RANDOM"_temp
 HCAMP_MAPPING_FILE="splunk_ping_map.txt"
 
 create_today_serverlist(){
+    # 返回要檢查的伺服器之列表.
+    
     # 搜尋 tsmbk 的 /source/opuse 目錄之下所有今天產生的子目錄
-    # 將子目錄名稱去掉日期後返回
-    find /source/opuse/*$(date +%Y%m%d)* -maxdepth 1 -type d \
+    # 如果含有 passwd 這個檔、就返回伺服器名稱，例：
+    #
+    # /source/opuse/a1_20170716/passwd
+    #               ^^ 這裡就是伺服器名稱
+    find /source/opuse/*$(date +%Y%m%d)* -maxdepth 1 -type f -name passwd \
         | awk -F'/' '{print $4}' \
-        | awk -F'_' '{print $1}'
+        | awk -F'_' '{print $1}' 
 }
 
 compare_user_of_this_server(){
@@ -55,8 +60,7 @@ compare_user_of_this_server(){
             if [ "${_server}" = "${_server_pair_left}" ]; then
                 # 如果本機名稱在左，就進入比對函式
                 # 這樣做是為了避免重複比對
-                echo "去做比對"
-                diff_etc_passwd_of_there_two_server \
+                diff_etc_passwd_of_those_two_server \
                     $_server_pair_left $_server_pair_right
             fi
         fi
@@ -64,7 +68,7 @@ compare_user_of_this_server(){
 }
 
 
-diff_etc_passwd_of_there_two_server(){
+diff_etc_passwd_of_those_two_server(){
     #######################################
     # 給兩個主機名稱，去 tsmbk 上的某資料夾尋找他們今天的 passwd 然後做帳號比對
     # Globals:
@@ -98,10 +102,12 @@ diff_etc_passwd_of_there_two_server(){
 
 
 main(){
-    server_list=$(create_today_serverlist) || {
+    server_list=$(create_today_serverlist)
+    if [ -z "${server_list}" ]; then
         echo  '產生伺服器列表失敗。'
         exit 1
-    }
+    fi
+
     for server in $server_list
     do
         compare_user_of_this_server $server
