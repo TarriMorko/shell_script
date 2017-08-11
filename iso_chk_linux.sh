@@ -32,10 +32,8 @@ echo "==================================" >> $outfil
 echo " cat /etc/login.defs|grep PASS_MAX_DAYS"  >> $outfil
 cat /etc/login.defs|grep PASS_MAX_DAYS |grep -v "^#" >> $outfil
 echo "---------   ----------  ----------- " >> $outfil
-# echo "pam-config -q --cracklib" >> $outfil 
-# pam-config -q --cracklib >> $outfil
-echo "grep -R "crack" --color" >> $outfil # 新加的
-grep -R "crack" --color >> $outfil        # 新加的
+echo "grep -R "crack" --color" >> $outfil
+grep -R "crack" --color >> $outfil
 
 echo "----------------------------------" >> $outfil
 # echo "pam-config -q --pwhistory ">> $outfil
@@ -96,8 +94,8 @@ echo "  " >> $outfil
 
 echo "2-6 確認強迫使用者未作任何動作超過一定時間時，予以強迫登出？" >> $outfil
 echo "==================================" >> $outfil
-echo "cat /etc/login.defs |grep LOGIN_TIMEOUT"  >> $outfil
-cat /etc/login.defs |grep LOGIN_TIMEOUT >> $outfil
+echo "cat /etc/profile |grep TMOUT"  >> $outfil
+cat /etc/profile |grep TMOUT >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 

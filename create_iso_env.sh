@@ -53,7 +53,6 @@ chkconfig haldaemon off
 chkconfig ip6tables off
 chkconfig lvm2-monitor off
 chkconfig mdmonitor off
-chkconfig messagebus off
 chkconfig netfs off
 chkconfig cups off
 chkconfig portreserve off
@@ -62,6 +61,10 @@ chkconfig httpd off
 
 mkdir -p /aulog/audreport
 chmod -R 700 /aulog/audreport
+chmod -R 700 /root
+
+# use sha512 instead of md5 for password
+authconfig --passalgo=sha512 --update
 
 # faillog -m 5 -u spos1
 # faillog -m 5 -u spos2
