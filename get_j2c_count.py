@@ -1,5 +1,6 @@
-
 import re
+
+search_text = "jdbc"
 
 PerfMbeanLists =  AdminControl.queryNames('type=Perf,*').split( lineSeparator)
 
@@ -12,24 +13,26 @@ for perfStr in PerfMbeanLists:
     sigs = ['javax.management.ObjectName', 'java.lang.Boolean']
     stats = AdminControl.invoke_jmx( perfObj, 'getStatsObject', params, sigs)
     
+def listStatsSubCollections( object ):
     try:
-        for subJCAconnectionpool in stats.getStats('j2cModule').subCollections(): 
-            # print subJCAconnectionpool.getName
-            for cf in subJCAconnectionpool.subCollections(): 
-                j2c = re.compile( r'.*j2c*' ).match( cf.getName() ) # DEBUG
-                if j2c:
-                    print cf.getName()    # cf.listStatisticNames()
-                    print cf.getStatistic('PoolSize').getCurrent()
+        sub = object.subCollections()
+        if not sub:
+            # print object.getName(), ", No subCollections."
+            target_stat = re.compile( r'.*' + search_text + '*' ).match( object.getName() )
+            if target_stat:
+                print object.getName()    # object.listStatisticNames()
+                print object.getStatistic('PoolSize').getCurrent()            
+            return
     except:
-        pass
+        return
+    try:
+        #print object.getName(), ", has subCollections..."
+        for sub_item in sub:
+            # print sub_item.getName()
+            sub_name = sub_item.getName()
+            listStatsSubCollections( object.getStats(sub_name) )
+    except:
+        print 'Unknown'
+        return
 
-    try:
-        for subJCAconnectionpool in stats.getStats('connectionPoolModule').subCollections(): 
-            # print subJCAconnectionpool.getName
-            for cf in subJCAconnectionpool.subCollections(): 
-                j2c = re.compile( r'.*j2c*' ).match( cf.getName() ) # DEBUG
-                if j2c:
-                    print cf.getName()    # cf.listStatisticNames()
-                    print cf.getStatistic('PoolSize').getCurrent()
-    except:
-        pass
+listStatsSubCollections(stats)
