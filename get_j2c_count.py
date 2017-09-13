@@ -22,3 +22,14 @@ for perfStr in PerfMbeanLists:
                     print cf.getStatistic('PoolSize').getCurrent()
     except:
         pass
+
+    try:
+        for subJCAconnectionpool in stats.getStats('connectionPoolModule').subCollections(): 
+            # print subJCAconnectionpool.getName
+            for cf in subJCAconnectionpool.subCollections(): 
+                j2c = re.compile( r'.*j2c*' ).match( cf.getName() ) # DEBUG
+                if j2c:
+                    print cf.getName()    # cf.listStatisticNames()
+                    print cf.getStatistic('PoolSize').getCurrent()
+    except:
+        pass
