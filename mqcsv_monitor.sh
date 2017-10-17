@@ -20,8 +20,33 @@ QMGRS=$(dspmq | sed 's/).*//g' | sed 's/.*(//g' )
 ###################################################################################
 ##	Debug Function
 ###################################################################################
+##	Global Variables for sending SMS Alarm
+ACCOUNT=AA34567
+FILENAME_PRIFIX=${ACCOUNT}$(date +%Y%s)
+TXT_FILE="${FILENAME_PRIFIX}.txt"
+END_FILE="${FILENAME_PRIFIX}.end"
+TXT_MODE="C"
+PHONE_NUMBER="0900123456 0900345988"
+
+## Variables and functions for logging
+_DEBUG="on"
+LOGFILENAME="mq_listener.log"
+
 DEBUG() {
-    [ "$_DEBUG" == "on" ] && $@ || :
+    [ "$_DEBUG" == "on" ] && echo "$(date +"%Y-%m-%d %H:%M:%S") $@" || :
+}
+
+writelog() {
+    # Creat SMS Alarm
+    log_message=$@
+    echo "$(date +"%Y-%m-%d %H:%M:%S") ${log_message}" | tee -a ${LOGFILENAME}
+    echo "" >$END_FILE
+    echo $@ >$TXT_FILE
+    echo $TXT_MODE >>$TXT_FILE
+    for phone in $PHONE_NUMBER; do
+        echo $phone >>$TXT_FILE
+    done
+    exit 0
 }
 
 #####################################################################################
@@ -30,24 +55,24 @@ DEBUG() {
 
 main() {
 
-    # DEBUG echo "Status: Entering Main Routine.. "
-    # DEBUG echo "Status: Checking to see if [$qmname] exists? ..."
+    # DEBUG "Status: Entering Main Routine.. "
+    # DEBUG "Status: Checking to see if [$qmname] exists? ..."
 
     qm=$(dspmq | awk '{ print $1 }' | sed 's/QMNAME(//g;s/)//g' | grep -o $qmname)
     if [ "$qm" = "" ]; then
-        DEBUG echo "Status: [$qmname] does not exist!"
+        DEBUG "Status: [$qmname] does not exist!"
         # $(crtmqm $qmname)
-        DEBUG echo "Failure: Exiting with value 1"
+        DEBUG "Failure: Exiting with value 1"
     else
-        # DEBUG echo "Status: [$qmname] exists"
+        # DEBUG "Status: [$qmname] exists"
         # status=$(dspmq -m $qmname | cut -d '(' -f2,3 | cut -d ')' -f2 | cut -d '(' -f2)
         status=$( dspmqcsv $qmname | grep -v ^$ | awk '{print $NF}' )
 
-        DEBUG echo status of queue manager [$qmname] mqcsv is [$status]
+        DEBUG status of queue manager [$qmname] mqcsv is [$status]
         if [ "$status" = "Stopped" ]; then
-            DEBUG echo "Status: Starting: [$qmname] mqcsv"
+            DEBUG "Status: Starting: [$qmname] mqcsv"
 
-            echo "發個簡訊"
+            writelog "發個簡訊"
             sleep 10
             
             strmqcsv $qmname
@@ -60,8 +85,8 @@ main() {
                 status=$( dspmqcsv $qmname | grep -v ^$ | awk '{print $NF}' )
             done
 
-            DEBUG echo status of queue manager [$qmname] mqcsv is [$status]
-            DEBUG echo "Success: Exiting with value 0"
+            DEBUG status of queue manager [$qmname] mqcsv is [$status]
+            DEBUG "Success: Exiting with value 0"
         fi
     fi
 }

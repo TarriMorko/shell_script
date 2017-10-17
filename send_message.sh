@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+#
+
+ACCOUNT=AA34567
+FILENAME_PRIFIX=${ACCOUNT}$(date +%Y%s)
+TXT_FILE="${FILENAME_PRIFIX}.txt"
+END_FILE="${FILENAME_PRIFIX}.end"
+TXT_MODE="C"
+PHONE_NUMBER="0900123456 0900345988"
+
+
+echo $FILENAME_PRIFIX
+echo $TXT_FILE
+echo $END_FILE
+
+for n in $PHONE_NUMBER; do
+    echo $n
+done
