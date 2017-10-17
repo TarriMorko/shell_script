@@ -14,49 +14,50 @@
 ###################################################################################
 localHost=$(hostname)
 _DEBUG="on"
-MQUSER="mqm"
 QMGRS=$(dspmq | sed 's/).*//g' | sed 's/.*(//g')
 ###################################################################################
 ##	Debug Function
 ###################################################################################
 DEBUG() {
-    [ "$_DEBUG" == "on" ] && $@ || :
+    [ "$_DEBUG" == "on" ] && echo "$(date +"%Y-%m-%d %H:%M:%S") $@" || :
 }
 
+writelog() {
+    log_message=$@
+    echo "$(date +"%Y-%m-%d %H:%M:%S") ${log_message}" # | tee -a ${LOGFILENAME}
+}
 #####################################################################################
 ##	Main Routine
 #####################################################################################
 
 main() {
 
-    DEBUG echo "Status: Entering Main Routine.. "
-    DEBUG echo "Status: Checking to see if [$qmname] exists? ..."
+    DEBUG "Entering Main Routine.. "
+    DEBUG "Checking to see if [$qmgr] exists? ..."
 
-    qm=$(dspmq | awk '{ print $1 }' | sed 's/QMNAME(//g;s/)//g' | grep -o $qmname)
+    qm=$(dspmq | awk '{ print $1 }' | sed 's/QMNAME(//g;s/)//g' | grep -o $qmgr)
+
     if [ "$qm" = "" ]; then
-        DEBUG echo "Status: [$qmname] does not exist!"
-        # $(crtmqm $qmname)
-        DEBUG echo "Failure: Exiting with value 1"
+        DEBUG "[$qmgr] does not exist!"
+        # $(crtmqm $qmgr)
+        DEBUG "Failure: Exiting with value 1"
     else
-        DEBUG echo "Status: [$qmname] exists"
-        status=$(dspmq -m $qmname | cut -d '(' -f2,3 | cut -d ')' -f2 | cut -d '(' -f2)
-        DEBUG echo status of queue manager [$qmname] is [$status]
+        DEBUG "[$qmgr] exists"
+        status=$(dspmq -m $qmgr | cut -d '(' -f2,3 | cut -d ')' -f2 | cut -d '(' -f2)
+        DEBUG status of queue manager [$qmgr] is [$status]
         if [ "$status" = "Ended unexpectedly" ]; then
-            DEBUG echo "Status: Starting: [$qmname]"
+            DEBUG "Starting: [$qmgr]"
+            strmqm $qmgr
 
-            echo "發個簡訊"
-            
-            strmqm $qmname
-
-            
+            writelog "這裡有問題ㄟ，發個簡訊"
 
             while [ "$status" != "Running" ]; do
                 sleep 5
                 echo "Running..."
-                status=$(dspmq -m $qmname | cut -d '(' -f2,3 | cut -d ')' -f2 | cut -d '(' -f2)
+                status=$(dspmq -m $qmgr | cut -d '(' -f2,3 | cut -d ')' -f2 | cut -d '(' -f2)
             done
-            DEBUG echo status of queue manager [$qmname] is [$status]
-            DEBUG echo "Success: Exiting with value 0"
+            DEBUG status of queue manager [$qmgr] is [$status]
+            DEBUG "Success: Exiting with value 0"
         fi
     fi
 }
@@ -64,7 +65,7 @@ main() {
 ####################################################################################
 ##	Entry Point
 ####################################################################################
-for qmname in $QMGRS; do
+for qmgr in $QMGRS; do
     main
 done
 
