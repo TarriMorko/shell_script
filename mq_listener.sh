@@ -57,6 +57,7 @@ for qmgr in $QMGRS; do
             continue
         elif [[ ${status} != "RUNNING" ]]; then
             writelog "Warning !! listener $listener 沒有 Running, 叫救護車"
+            echo "START listener($listener)" | runmqsc $qmgr
         else
             DEBUG "listner $listener in $qmgr is $status "
         fi

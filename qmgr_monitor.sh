@@ -74,7 +74,7 @@ main() {
 
             while [ "$status" != "Running" ]; do
                 sleep 5
-                echo "Running..."
+                echo "Not Running..."
                 status=$(dspmq -m $qmgr | cut -d '(' -f2,3 | cut -d ')' -f2 | cut -d '(' -f2)
             done
             DEBUG status of queue manager [$qmgr] is [$status]
