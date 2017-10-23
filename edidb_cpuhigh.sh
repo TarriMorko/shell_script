@@ -1,12 +1,13 @@
 #!/bin/sh
 #
 #
-while (true); do
+while ( true ); do
     sleep 1
-    vmstat -t | grep -v free | grep -v memory | awk '{print $0}' > vmstat.txt
-    sy=$( awk '{print $15}' vmstat.txt )   ## 這裡要調
-    if [ "$sy" -gt 0 ]; then                    ## 大於多少要做
-        echo "sy 大於0"                           ## 做  perfpmr.sh -x trace.sh 5
-        echo $sy
+    idle=$(vmstat -t | tail -n 1 | tee -a vmstat.log | awk '{print $(NF-4)}')
+    if [ $idle -lt 10 ]; then
+        echo "$(date +"%Y-%m-%d %H:%M:%S")" trace start >> vmstat.log
+        echo ">>>>${idle}<<<<"
+        echo "$(date +"%Y-%m-%d %H:%M:%S")" trace done >> vmstat.log
+        exit 0
     fi
 done
