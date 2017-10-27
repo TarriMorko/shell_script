@@ -6,9 +6,11 @@ LOGFILENAME="edidb_cpuhigh.log"
 
 echo "$(date +"%Y-%m-%d %H:%M:%S")" script start >>${LOGFILENAME}
 
+vmstat -t 1 >vmstat.log &
+
 while (true); do
     sleep 1
-    idle=$(vmstat -t | tail -n 1 | tee -a ${LOGFILENAME} | awk '{print $(NF-4)}')
+    idle=$(cat vmstat.log | tail -n 1 | tee -a ${LOGFILENAME} | awk '{print $(NF-4)}')
     if [ $idle -lt 5 ]; then
         echo "$(date +"%Y-%m-%d %H:%M:%S")" trace start >>${LOGFILENAME}
 
