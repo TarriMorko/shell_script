@@ -32,12 +32,6 @@ echo "==================================" >> $outfil
 echo " cat /etc/login.defs|grep PASS_MAX_DAYS"  >> $outfil
 cat /etc/login.defs|grep PASS_MAX_DAYS |grep -v "^#" >> $outfil
 echo "---------   ----------  ----------- " >> $outfil
-echo "grep -R "crack" --color" >> $outfil
-grep -R "crack" --color >> $outfil
-
-echo "----------------------------------" >> $outfil
-# echo "pam-config -q --pwhistory ">> $outfil
-# pam-config -q --pwhistory >> $outfil
 
 echo "egrep -i -o remember=[0-9]  /etc/pam.d/system-auth">> $outfil # 新加的
 egrep -i -o remember=[0-9] /etc/pam.d/system-auth >> $outfil        # 新加的
@@ -210,7 +204,7 @@ echo "  " >> $outfil
 echo "7-1 確認目前是否已更新至修補程式之最適版本。 " >> $outfil
 echo "==================================" >> $outfil
 echo "維持半年前之最適版本"   >> $outfil
-# sam --no-header-sig-check --no-rpm-verify --no-rpm-verify-md5 --skip-unmatched-prod --strict-repo-description --no-log-timestamp |grep name:|awk '{print $2}'  >> $outfil
+cat /etc/system-release  >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 
@@ -232,3 +226,13 @@ echo "==================================" >> $outfil
 echo "安裝軟體、開申請單核准後進機房使用"  >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
+
+echo "經　　　辦： "  >> $outfil
+echo "  " >> $outfil
+echo "  " >> $outfil
+
+echo "副　科　長： "  >> $outfil
+echo "  " >> $outfil
+echo "  " >> $outfil
+
+echo "科      長： "  >> $outfil
