@@ -6,6 +6,7 @@
 
 diff_temp="$RANDOM"_temp
 HCAMP_MAPPING_FILE="splunk_ping_map.txt"
+echo > compare_account_output
 
 create_today_serverlist() {
     find /source/opuse/*$(date +%Y%m%d)* -type f -name passwd |
@@ -41,18 +42,18 @@ diff_etc_passwd_of_those_two_server() {
     rc=$?
 
     if [ $rc -eq 0 ]; then
-        echo "============================================="
-        echo "UserAccounts in $_server1 and $_server2 are the same."
+        echo "=============================================" >> compare_account_output
+        echo "$_server1 和 $_server2 帳號皆相同." >> compare_account_output
         return 0
     fi
-
-    echo "============================================="
-    echo "UserAccounts in $_server1 and $_server2 are NOT the same."
+    
+    echo "=============================================" >> compare_account_output
+    echo "!!!  $_server1 和 $_server2 帳號不相同 !   ＜------------------------" >> compare_account_output
     awk -v _server1=$_server1 \
         -v _server2=$_server2 \
         -F':' \
-        '/</{print _server2,"Do Not have account:", $1} \
-         />/{print _server1, "Do Not have account:",$1}' $diff_temp
+        '/</{print _server2, "沒有帳號:", $1} \
+         />/{print _server1, "沒有帳號:", $1}' $diff_temp >> compare_account_output
 }
 
 clear_up_temp() {
@@ -71,6 +72,13 @@ main() {
         compare_user_of_this_server $server
     done
 
+	sed -i "s/<//" compare_account_output
+	sed -i "s/>//" compare_account_output
+	cat compare_account_output
+	echo
     clear_up_temp
+	rm -f *_temp
+	
+	
 }
 main
