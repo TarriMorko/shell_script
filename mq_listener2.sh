@@ -23,25 +23,3 @@ for qmgr in $QMGRS; do
     done
 
 done 
-
-
-dis listener(*)
-     7 : dis listener(*)
-AMQ8630: Display listener information details.
-   LISTENER(CSQ1_LSN)
-AMQ8630: Display listener information details.
-   LISTENER(SYSTEM.DEFAULT.LISTENER.TCP)
-dis  LISTENER(CSQ1_LSN)
-     8 : dis  LISTENER(CSQ1_LSN)
-AMQ8630: Display listener information details.
-   LISTENER(CSQ1_LSN)                      CONTROL(QMGR)
-   TRPTYPE(TCP)                            PORT(1414)
-   IPADDR( )                               BACKLOG(0)
-   DESCR( )                                ALTDATE(2015-07-20)
-   ALTTIME(10.22.09)
-DIS LISTENER(*)
-     9 : DIS LISTENER(*)
-AMQ8630: Display listener information details.
-   LISTENER(CSQ1_LSN)
-AMQ8630: Display listener information details.
-   LISTENER(SYSTEM.DEFAULT.LISTENER.TCP)
