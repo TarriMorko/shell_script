@@ -32,7 +32,7 @@ pam-config -q --pwhistory >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 
-echo "2-2 ½T»{¨Ï¥ÎªÌ±b¸¹ªº¥i¿ë§O©Ê¡H" >> $outfil
+echo "2-2 ½T»{¨Ï¥ÎŽÍ±b¸¹ªº¥i¿ë§O©Ê¡H" >> $outfil
 echo "==================================" >> $outfil
 echo " cat /etc/passwd "  >> $outfil
 cat /etc/passwd   >> $outfil
@@ -48,7 +48,7 @@ echo " cat /etc/group  "  >> $outfil
 cat /etc/group   >> $outfil
 echo "----------------------------------" >> $outfil
 
-echo "2-3-3 ¦C¥X/etc/passwd¤Î/etc/group¤¤¡Auid¤Îgid¬°0ªº©Ò¦³¨Ï¥ÎªÌ"  >> $outfil
+echo "2-3-3 ¦C¥X/etc/passwd¤Î/etc/group¤¤¡Auid¤Îgid¬°0ªº©Ò¦³¨Ï¥ÎŽÍ"  >> $outfil
 cat /etc/passwd |grep ':0:0' >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
@@ -79,7 +79,7 @@ echo "¦P 2-2 /etc/passwd ÀÉ" >> $outfil
 echo "----------------------------------" >> $outfil
 echo "  " >> $outfil
 
-echo "2-6 ½T»{±j­¢¨Ï¥ÎªÌ¥¼§@¥ô¦ó°Ê§@¶W¹L¤@©w®É¶¡®É¡A¤©¥H±j­¢µn¥X¡H" >> $outfil
+echo "2-6 ½T»{±j­¢¨Ï¥ÎŽÍ¥¼§@¥ô¦ó°Ê§@¶W¹L¤@©w®É¶¡®É¡A¤©¥H±j­¢µn¥X¡H" >> $outfil
 echo "==================================" >> $outfil
 echo "cat /etc/login.defs |grep LOGIN_TIMEOUT"  >> $outfil
 cat /etc/login.defs |grep LOGIN_TIMEOUT >> $outfil
@@ -88,7 +88,7 @@ echo "  " >> $outfil
 
 
 
-echo "2-7 ½T»{¨t²Î¹w³]¨Ï¥ÎªÌ±b¸¹ªºumask­È" >> $outfil
+echo "2-7 ½T»{¨t²Î¹w³]¨Ï¥ÎŽÍ±b¸¹ªºumask­È" >> $outfil
 echo "==================================" >> $outfil
 echo "cat /etc/login.defs |grep UMASK |grep 027"  >> $outfil
 cat /etc/login.defs |grep UMASK |grep 027 >> $outfil
@@ -114,7 +114,7 @@ for system_default_accout in ${system_default_accouts[@]}; do
         echo "¥»¨t²ÎµL $system_default_accout ±b¸¹¡C"  >> $outfil
     else
         if 	[ "$login_sh" == "/bin/false" ]; then
-            echo "±b¸¹ $system_default_accout ¤w°±¥Î¡C"  >> $outfil
+            echo "¥»¨t²Î¦³ $system_default_accout ªº¨t²Î¹w³]±b¸¹¡A¦ý $system_default_accout  ±b¸¹¤w°±¥Î¥B¤£¨ã³Ælogin shell¡C"   >> $outfil
         else    
             echo "±b¸¹ $system_default_accout ¥¼°±¥Î¡C"  >> $outfil
         fi
@@ -194,19 +194,32 @@ echo "  " >> $outfil
 
 echo "6-1 ½T»{§@·~¨t²Î¬O§_¤wÃö³¬¤£¥²­n¤§ºô¸ôªA°È(inetd) "  >> $outfil
 echo "==================================" >> $outfil
-cat /etc/services |grep finger >> $outfil
-cat /etc/services |grep ftp|grep " 21/"  >> $outfil
-cat /etc/services |grep gopher >> $outfil
-cat /etc/services |grep imap |grep "143/" >> $outfil
-cat /etc/services |grep pop2 >> $outfil
-cat /etc/services |grep talk |grep "517/" >> $outfil
-cat /etc/services |grep talk |grep "518/" >> $outfil
-cat /etc/services |grep telnet |grep " 23/" >> $outfil
-cat /etc/services |grep uucp |grep "540/" >> $outfil
-cat /etc/services |grep nfs |grep "2049/" >> $outfil
-cat /etc/services |grep "nis   "|grep "/tcp"|grep "/udp" >> $outfil
-echo "----------------------------------" >> $outfil
-echo "  " >> $outfil
+
+
+check_services=(finger ftp gopher imap  pop2 talk ntalk telnet uucp nfs nis)
+
+for service in ${check_services[@]}; do
+    echo "ÀË¬dªA°È $service ª¬ºA"           >> $outfil
+    cat /etc/services | grep "^$service "  >> $outfil
+    service_enabled=$?
+
+    cat /etc/services | grep "^#$service " >> $outfil
+    service_disabled=$?
+
+    if [ $service_enabled -eq 0 ]; then
+        echo "$service ªA°È¤w±Ò°Ê"          >> $outfil
+    fi
+
+    if [ $service_disabled -eq 0 ]; then
+        echo "$service ªA°È¤wÃö³¬"          >> $outfil
+    fi
+
+    if [ $service_disabled -gt 0 ] && [ $service_enabled -gt 0 ]; then
+        echo "¥»¨t²ÎµL $service ªA°È"       >> $outfil
+    fi
+    echo "----------------------------------" >> $outfil
+done
+
 
 echo "6-2 ½T»{¥u¶}±Ò¥²­n¤§³q°T°ð¤ÎTCP/IPªA°È"  >> $outfil
 echo "==================================" >> $outfil
