@@ -223,13 +223,15 @@ done
 
 echo "6-2 確認只開啟必要之通訊埠及TCP/IP服務"  >> $outfil
 echo "==================================" >> $outfil
-echo "cat /etc/xinetd.conf |grep -v "^#""  >> $outfil
-cat /etc/xinetd.conf |grep -v "^#"  >> $outfil
-echo "----------------------------------" >> $outfil
-echo "chkconfig --list |tail -18 "  >> $outfil
-chkconfig --list |tail -18   >> $outfil
-echo "----------------------------------" >> $outfil
-echo "  " >> $outfil
+xinetd_services=(ftp vnc telnet shell login exec talk ntalk imap pop2 pop3 finger auth)
+
+for xinetd in ${xinetd_services[@]}; do
+    echo "檢查服務 $xinetd 狀態" >> $outfil
+    cat /etc/xinetd.d/$xinetd 2>/dev/null  | grep "service\|disable" >> $outfil
+    if ! [ -f /etc/xinetd.d/$xinetd ]; then
+        echo "本系統未安裝 $xinetd 服務" >> $outfil
+    fi
+done
 
 
 echo "7-1 確認目前是否已更新至修補程式之最適版本。 " >> $outfil
