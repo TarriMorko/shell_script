@@ -6,7 +6,7 @@
         {
             "label": "SSH somethin",
             "type": "shell",
-            "command": "scp check_nouser.sh root@inst411:~;  ssh root@inst411 '~/check_nouser.sh'",
+            "command": "scp iso_chk_linux_suse.sh root@192.168.142.133:~;  ssh root@192.168.142.133 '~/iso_chk_linux_suse.sh'",
         }
     ]
 }
