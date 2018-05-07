@@ -6,7 +6,8 @@
         {
             "label": "SSH somethin",
             "type": "shell",
-            "command": "scp iso_chk_linux_suse.sh root@192.168.142.133:~;  ssh root@192.168.142.133 '~/iso_chk_linux_suse.sh'",
+            // "command": "scp check_permission_and_md5.sh root@192.168.142.129:~;  ssh root@192.168.142.129 '~/check_permission_and_md5.sh'",
+            "command": "scp check_permission_and_md5.sh root@192.168.142.129:~",
         }
     ]
 }
