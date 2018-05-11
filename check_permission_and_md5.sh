@@ -65,6 +65,12 @@ create_base_permission() {
       time find $dir -type f -exec stat -c '%A %F %g %u %s %Y %n' {} \; >>$BASE_PERMISSION
     else
       time find $dir -type f -exec istat {} \; | tr '\n' ' ' >>$BASE_PERMISSION
+
+      for i in $(find $dir -type f); do
+        istat $i | tr '\n' ' '>>$BASE_PERMISSION
+        echo '\n' >>$BASE_PERMISSION
+      done
+
     fi
 
   done
@@ -81,7 +87,13 @@ create_permission_today() {
     if [[ $OS = "Linux" ]]; then
       time find $dir -type f -exec stat -c '%A %F %g %u %s %Y %n' {} \; >>$_permission_today
     else
-      time find $dir -type f -exec istat {} \; | tr '\n' ' ' >>$_permission_today
+
+      for i in $(find $dir -type f); do
+        istat $i | tr '\n' ' '>>$_permission_today
+        echo '\n' >>$_permission_today
+      done
+
+
     fi
 
   done
