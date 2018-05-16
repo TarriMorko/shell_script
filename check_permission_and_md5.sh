@@ -20,17 +20,16 @@
 ## 數分鐘後系統顯示 Audit passed. 或  Audit failed. 並產生報表到指定目錄。
 ## 宗翰感覺開心，將報表取出後下班了。
 
-_HOME="/source/check_permission"
+_HOME="/src/mwadmin/check_permission_and_md5"
 
 BASE_PERMISSION="$_HOME/BASE_PERMISSION"
 PERMISSION_REPORT="$_HOME/PERMISSION_report_$(hostname)_$(date +%Y%m%d).txt"
-# DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION="/bin /sbin /usr/bin /usr/sbin /etc"
-DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION="/nmon /etc /bin"
+DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION="/bin /sbin /usr/bin /usr/sbin /etc"
 
 BASE_MD5="$_HOME/BASE_MD5"
 MD5_REPORT="$_HOME/MD5_report_$(hostname)_$(date +%Y%m%d).txt"
-# DIRECTORY_YOU_WAT_TO_CHECK_MD5="/bin /sbin /usr/bin /usr/sbin /etc"
-DIRECTORY_YOU_WAT_TO_CHECK_MD5="/nmon /etc /bin"
+DIRECTORY_YOU_WAT_TO_CHECK_MD5=$DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION
+
 
 if [[ "$(uname)" = "Linux" ]]; then
   OS="Linux"
@@ -49,8 +48,8 @@ show_main_menu() {
       1. 檢查檔案權限
       2. 檢查檔案 hash
 
-      3. 產生檔案權限基準檔     # 產生完之後建議拿掉此選項
-      4. 產生檔案 hash 基準檔  # 產生完之後建議拿掉此選項
+      3. 產生檔案權限基準檔
+      4. 產生檔案 hash 基準檔
       
       q.QUIT
 
@@ -58,14 +57,26 @@ EOF
 }
 
 create_base_permission() {
+  # 依照 DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION 所指定的目錄
+  # 排除檔案 exclude_file 中列舉的檔案名稱
+  # 產生權限列表至 $BASE_PERMISSION
+  #
+  # 檔案格式為 檔名, 權限, uid, gid
+  # 範例
+  # /usr/bin/oldfind -rwxr-xr-x 0 0
+  # /usr/bin/catchsegv -rwxr-xr-x 0 0
+  # /usr/bin/xargs -rwxr-xr-x 0 0  
   echo "Please wait..."
   rm $BASE_PERMISSION >/dev/null 2>&1
   for dir in $DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION; do
     echo "Parsing $dir permission now..."
     echo ""
     if [[ $OS = "Linux" ]]; then
-      time find $dir -type f -exec stat -c '%A %F %g %u %s %Y %n' {} \; >>$BASE_PERMISSION
-      # echo "TODO"
+
+      for i in $(find $dir -type f | grep -v -f exclude_file); do
+        stat -c '%n %A %g %u' $i >>$BASE_PERMISSION
+      done
+
     else
 
       for i in $(find $dir -type f | grep -v -f exclude_file); do
@@ -80,15 +91,27 @@ create_base_permission() {
 
 create_permission_today() {
   # 依照 DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION 所指定的目錄
+  # 排除檔案 exclude_file 中列舉的檔案名稱  
   # 產生權限列表至臨時檔案 $BASE_PERMISSION
+  #
+  # 檔案格式為 檔名, 權限, uid, gid
+  # 範例
+  # /usr/bin/oldfind -rwxr-xr-x 0 0
+  # /usr/bin/catchsegv -rwxr-xr-x 0 0
+  # /usr/bin/xargs -rwxr-xr-x 0 0
+
+
   echo "Please wait..."
   _permission_today="$RANDOM"_temp
   for dir in $DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION; do
     echo "Parsing $dir permission now..."
     echo ""
     if [[ $OS = "Linux" ]]; then
-      time find $dir -type f -exec stat -c '%A %F %g %u %s %Y %n' {} \; >>$_permission_today
-      # echo "TODO"
+
+      for i in $(find $dir -type f | grep -v -f exclude_file); do
+        stat -c '%n %A %g %u' $i >>$_permission_today
+      done
+
     else
 
       for i in $(find $dir -type f | grep -v -f exclude_file); do
@@ -102,17 +125,16 @@ create_permission_today() {
 }
 
 diff_permission_today_with_BASE() {
-  diff ${BASE_PERMISSION} $_permission_today >/dev/null 2>&1
+  diff $BASE_PERMISSION $_permission_today >$PERMISSION_REPORT
   if [[ $? -eq 0 ]]; then
     echo ''
     echo "Permission Audit passed."
-    echo "Permission Audit passed." >$PERMISSION_REPORT
+    echo "Permission Audit passed." >>$PERMISSION_REPORT
 
   else
-    diff ${BASE_PERMISSION} $_permission_today >$PERMISSION_REPORT
-    echo '' >>$PERMISSION_REPORT
-    echo "Audit failed" >>$PERMISSION_REPORT
-    echo "Audit failed, check $PERMISSION_REPORT for detail."
+    echo ''
+    echo "Permission Audit failed. check $PERMISSION_REPORT for detail."
+    echo "Permission Audit failed." >>$PERMISSION_REPORT
   fi
   rm $_permission_today
 }
@@ -123,14 +145,28 @@ check_permission() {
 }
 
 create_base_md5() {
+  # 依照 DIRECTORY_YOU_WAT_TO_CHECK_MD5 所指定的目錄
+  # 排除檔案 exclude_file 中列舉的檔案名稱  
+  # 產生 md5 列表至 $BASE_MD5
+  #
+  # 檔案格式為 hash字串 full檔案路徑
+  # 範例：
+  # 85bc0fd26b358ea8edc0d4cab5e92044  /usr/bin/oldfind
+  # 795ad904fe7001acae1a149c4cd1ff3d  /usr/bin/catchsegv
+  # 2098c131c6f1f63777e9678b4be4e752  /usr/bin/xargs
+
+
   echo "Please wait..."
   rm $BASE_MD5 >/dev/null 2>&1
   for dir in $DIRECTORY_YOU_WAT_TO_CHECK_MD5; do
     echo "Parsing $dir hash now..."
     echo ""
     if [[ $OS = "Linux" ]]; then
-      time find $dir -type f -exec md5sum {} \; >>$BASE_MD5
-      # echo "TODO"
+
+      for i in $(find $dir -type f | grep -v -f exclude_file); do
+        md5sum $i >>$BASE_MD5
+      done
+
     else
 
       for i in $(find $dir -type f | grep -v -f exclude_file); do
@@ -144,7 +180,15 @@ create_base_md5() {
 
 create_md5_today() {
   # 依照 DIRECTORY_YOU_WAT_TO_CHECK_MD5 所指定的目錄
-  # 產生 md5 列表至臨時檔案 _md5_today
+  # 排除檔案 exclude_file 中列舉的檔案名稱  
+  # 產生 md5 列表至 $_md5_today
+  #
+  # 檔案格式為 hash字串 full檔案路徑
+  # 範例：
+  # 85bc0fd26b358ea8edc0d4cab5e92044  /usr/bin/oldfind
+  # 795ad904fe7001acae1a149c4cd1ff3d  /usr/bin/catchsegv
+  # 2098c131c6f1f63777e9678b4be4e752  /usr/bin/xargs
+
 
   _md5_today="$RANDOM"_temp
 
@@ -152,8 +196,11 @@ create_md5_today() {
     echo "Parsing $dir hash now..."
     echo ""
     if [[ $OS = "Linux" ]]; then
-      time find $dir -type f -exec md5sum {} \; >>$_md5_today
-      # echo "TODO"
+
+      for i in $(find $dir -type f | grep -v -f exclude_file); do
+        md5sum $i >>$_md5_today
+      done
+
     else
 
       for i in $(find $dir -type f | grep -v -f exclude_file); do
