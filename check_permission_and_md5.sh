@@ -30,7 +30,6 @@ BASE_MD5="$_HOME/BASE_MD5"
 MD5_REPORT="$_HOME/MD5_report_$(hostname)_$(date +%Y%m%d).txt"
 DIRECTORY_YOU_WAT_TO_CHECK_MD5=$DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION
 
-
 if [[ "$(uname)" = "Linux" ]]; then
   OS="Linux"
 else
@@ -54,6 +53,7 @@ show_main_menu() {
       5. 我想查「某個帳號」在「某個目錄」下、有「讀取」權限的所有目錄
       6. 我想查「某個帳號」在「某個目錄」下、有「寫入」權限的所有目錄
       7. 我想查「某個帳號」在「某個目錄」下、有「執行」權限的所有目錄
+      8. 查「某個帳號」在「某個目錄」下、同時「讀取、寫入、執行」權限的所有目錄
 
       q.QUIT
 
@@ -94,6 +94,16 @@ find_executable_directory_by_user() {
   read _directory
 
   find ${_directory} -type d -user ${_user} -executable | tee $_HOME/${_user}_executable_directory_permission.txt
+}
+
+find_full_permission_directory_by_user() {
+  # 查「某個帳號」在「某個目錄」下、同時「讀取、寫入、執行」權限的所有目錄
+  echo "Enter user:"
+  read _user
+  echo "Enter directory"
+  read _directory
+
+  find ${_directory} -type d -user ${_user} -executable -writable -readable | tee $_HOME/${_user}_full_permission_directory_permission.txt
 }
 
 create_base_permission() {
@@ -285,6 +295,7 @@ main() {
     5) find_readable_directory_by_user ;;
     6) find_writable_directory_by_user ;;
     7) find_executable_directory_by_user ;;
+    8) find_full_permission_directory_by_user ;;
     [Qq])
       echo ''
       echo 'Thanks !! bye bye ^-^ !!!'
