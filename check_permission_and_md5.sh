@@ -51,9 +51,49 @@ show_main_menu() {
       3. 產生檔案權限基準檔
       4. 產生檔案 hash 基準檔
       
+      5. 我想查「某個帳號」在「某個目錄」下、有「讀取」權限的所有目錄
+      6. 我想查「某個帳號」在「某個目錄」下、有「寫入」權限的所有目錄
+      7. 我想查「某個帳號」在「某個目錄」下、有「執行」權限的所有目錄
+
       q.QUIT
 
 EOF
+}
+
+find_readable_directory_by_user() {
+  # 查「某個帳號」在「某個目錄」下、有「讀取權限」的「目錄」
+  # Not for AIX
+
+  echo "Enter user:"
+  read _user
+  echo "Enter directory"
+  read _directory
+
+  find ${_directory} -type d -user ${_user} -readable | tee $_HOME/${_user}_readable_directory_permission.txt
+}
+
+find_writable_directory_by_user() {
+  # 查「某個帳號」在「某個目錄」下、有「讀取權限」的「目錄」
+  # Not for AIX
+
+  echo "Enter user:"
+  read _user
+  echo "Enter directory"
+  read _directory
+
+  find ${_directory} -type d -user ${_user} -writable | tee $_HOME/${_user}_writable_directory_permission.txt
+}
+
+find_executable_directory_by_user() {
+  # 查「某個帳號」在「某個目錄」下、有「讀取權限」的「目錄」
+  # Not for AIX
+
+  echo "Enter user:"
+  read _user
+  echo "Enter directory"
+  read _directory
+
+  find ${_directory} -type d -user ${_user} -executable | tee $_HOME/${_user}_executable_directory_permission.txt
 }
 
 create_base_permission() {
@@ -99,7 +139,6 @@ create_permission_today() {
   # /usr/bin/oldfind -rwxr-xr-x 0 0
   # /usr/bin/catchsegv -rwxr-xr-x 0 0
   # /usr/bin/xargs -rwxr-xr-x 0 0
-
 
   echo "Please wait..."
   _permission_today="$RANDOM"_temp
@@ -155,7 +194,6 @@ create_base_md5() {
   # 795ad904fe7001acae1a149c4cd1ff3d  /usr/bin/catchsegv
   # 2098c131c6f1f63777e9678b4be4e752  /usr/bin/xargs
 
-
   echo "Please wait..."
   rm $BASE_MD5 >/dev/null 2>&1
   for dir in $DIRECTORY_YOU_WAT_TO_CHECK_MD5; do
@@ -188,7 +226,6 @@ create_md5_today() {
   # 85bc0fd26b358ea8edc0d4cab5e92044  /usr/bin/oldfind
   # 795ad904fe7001acae1a149c4cd1ff3d  /usr/bin/catchsegv
   # 2098c131c6f1f63777e9678b4be4e752  /usr/bin/xargs
-
 
   _md5_today="$RANDOM"_temp
 
@@ -245,6 +282,9 @@ main() {
     2) check_md5 ;;
     3) create_base_permission ;;
     4) create_base_md5 ;;
+    5) find_readable_directory_by_user ;;
+    6) find_writable_directory_by_user ;;
+    7) find_executable_directory_by_user ;;
     [Qq])
       echo ''
       echo 'Thanks !! bye bye ^-^ !!!'
