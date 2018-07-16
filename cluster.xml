@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<cluster config_version="1" name="cluster01">
+    <cman expected_votes="3"/>
+    
+    <clusternodes>
+        <clusternode name="node1h" nodeid="1" votes="1">
+		<fence>
+            <!-- 適切な Fence デバイスを指定 -->
+		</fence>
+        </clusternode>
+
+        <clusternode name="node2h" nodeid="2" votes="1">
+        <fence>
+            <!-- 適切な Fence デバイスを指定 -->
+        </fence> 
+        </clusternode>
+    </clusternodes>
+
+<totem token="20000"/> 
+<quorumd interval="1" master_wins="1" tko="10" votes="1" label="qdisk1"/>
+<fencedevices>
+    <!-- 適切な Fence デバイスを設定 --> 
+</fencedevices>
+
+<rm> 
+    <failoverdomains> 
+        <failoverdomain name="dom01"> 
+        <failoverdomainnode name="node1h" priority="1"/> 
+        <failoverdomainnode name="node2h" priority="2"/> 
+        </failoverdomain> 
+    </failoverdomains> 
+    
+    <service autostart="0" domain="dom01" name="service01"> 
+        <ip address="192.168.142.209" monitor_link="on"> 
+        <fs name="webdata01" device="/dev/sdc" fstype="ext4" mountpoint="/var/www" self_fence="1"> 
+            <apache name="webserver01"/>
+        </fs> 
+        </ip>
+    </service> 
+</rm> 
+</cluster>
