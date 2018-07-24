@@ -30,6 +30,9 @@ BASE_MD5="$_HOME/BASE_MD5"
 MD5_REPORT="$_HOME/MD5_report_$(hostname)_$(date +%Y%m%d).txt"
 DIRECTORY_YOU_WAT_TO_CHECK_MD5=$DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION
 
+DIRS_YOU_WANT_TO_CHECK="/home /home/spos2"
+
+
 if [[ "$(uname)" = "Linux" ]]; then
   OS="Linux"
 else
@@ -50,61 +53,38 @@ show_main_menu() {
       3. 產生檔案權限基準檔
       4. 產生檔案 hash 基準檔
       
-      5. 我想查「某個帳號」在「某個目錄」下、有「讀取」權限的所有目錄
-      6. 我想查「某個帳號」在「某個目錄」下、有「寫入」權限的所有目錄
-      7. 我想查「某個帳號」在「某個目錄」下、有「執行」權限的所有目錄
-      8. 查「某個帳號」在「某個目錄」下、同時「讀取、寫入、執行」權限的所有目錄
+      5. 指定一或多個目錄，列出哪些帳號具有該目錄的「讀取」權限
+      6. 指定一或多個目錄，列出哪些帳號具有該目錄的「寫入」權限
+      7. 指定一或多個目錄，列出哪些帳號具有該目錄的「執行」權限
+
+        ## 請在 script 中變更 xx 參數來指定目錄
 
       q.QUIT
 
 EOF
 }
 
-find_readable_directory_by_user() {
-  # 查「某個帳號」在「某個目錄」下、有「讀取權限」的「目錄」
-  # Not for AIX
 
-  echo "Enter user:"
-  read _user
-  echo "Enter directory"
-  read _directory
 
-  find ${_directory} -type d -user ${_user} -readable | tee $_HOME/${_user}_readable_directory_permission.txt
+list_users_who_can_write_the_dir() {
+  ids=$(cat /etc/passwd | awk -F':' '( $NF == "/bin/bash") {print $1}' )
+
+  for dir in $DIRS_YOU_WANT_TO_CHECK; do
+
+    echo "List who can write $dir :"
+
+    for id in $ids; do
+      #echo "DEBUG: id=$id"
+      su - $id -c "test -w '$dir'" >/dev/null 2>&1 && echo $id
+    done
+
+    echo ""
+
+  done
+
 }
 
-find_writable_directory_by_user() {
-  # 查「某個帳號」在「某個目錄」下、有「讀取權限」的「目錄」
-  # Not for AIX
 
-  echo "Enter user:"
-  read _user
-  echo "Enter directory"
-  read _directory
-
-  find ${_directory} -type d -user ${_user} -writable | tee $_HOME/${_user}_writable_directory_permission.txt
-}
-
-find_executable_directory_by_user() {
-  # 查「某個帳號」在「某個目錄」下、有「讀取權限」的「目錄」
-  # Not for AIX
-
-  echo "Enter user:"
-  read _user
-  echo "Enter directory"
-  read _directory
-
-  find ${_directory} -type d -user ${_user} -executable | tee $_HOME/${_user}_executable_directory_permission.txt
-}
-
-find_full_permission_directory_by_user() {
-  # 查「某個帳號」在「某個目錄」下、同時「讀取、寫入、執行」權限的所有目錄
-  echo "Enter user:"
-  read _user
-  echo "Enter directory"
-  read _directory
-
-  find ${_directory} -type d -user ${_user} -executable -writable -readable | tee $_HOME/${_user}_full_permission_directory_permission.txt
-}
 
 create_base_permission() {
   # 依照 DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION 所指定的目錄
@@ -292,10 +272,10 @@ main() {
     2) check_md5 ;;
     3) create_base_permission ;;
     4) create_base_md5 ;;
-    5) find_readable_directory_by_user ;;
-    6) find_writable_directory_by_user ;;
-    7) find_executable_directory_by_user ;;
-    8) find_full_permission_directory_by_user ;;
+    # 5) find_readable_directory_by_user ;;
+    6) list_users_who_can_write_the_dir ;;
+    # 7) find_executable_directory_by_user ;;
+    # 8) find_full_permission_directory_by_user ;;
     [Qq])
       echo ''
       echo 'Thanks !! bye bye ^-^ !!!'
