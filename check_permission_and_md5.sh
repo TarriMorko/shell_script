@@ -2,8 +2,12 @@
 #
 #
 # 建置帳號對程式及資料檔案相關權限之檢查功能介面，於帳號清查作業時一併列示清查
+# 使用前請先定義 以下參數
+# DIRECTORY_YOU_WANT_TO_CHECK_PERMISSION  #掃描這些目錄下所有檔案與目錄的權限
+# DIRECTORY_YOU_WANT_TO_CHECK_MD5         #掃描這些目錄下所有檔案的hash
+# DIRECTORY_YOU_WANT_TO_CHECK             #檢查誰可以存取這些目錄
 
-## 以下是 user story
+## USER STORY
 
 ## 宗翰正準備執行帳號清查作業，宗翰登入系統打開了 opmenu
 ## 宗翰選擇了 check_permission_and_md5 項目
@@ -20,18 +24,56 @@
 ## 數分鐘後系統顯示 Audit passed. 或  Audit failed. 並產生報表到指定目錄。
 ## 宗翰感覺開心，將報表取出後下班了。
 
+# Changelog
+
+## [Unreleased]
+# AIX 有 suid 的部分，在比對檔案權限時有問題(多一個 suid欄位)
+
+## [0.5] - 2018-07-25
+### Added
+# - 指定一或多個目錄，列出哪些帳號具有該目錄的「讀取」權限
+# - 指定一或多個目錄，列出哪些帳號具有該目錄的「寫入」權限
+# - 指定一或多個目錄，列出哪些帳號具有該目錄的「執行」權限
+### Fixed
+# - 檢查檔案權限 改為 檢查檔案及目錄權限
+# - 產生檔案權限基準檔 改為 產生檔案及目錄權限基準檔
+# - 移除查「某個帳號」在「某個目錄」下、同時「讀取、寫入、執行」權限的所有目錄
+# - 移除查「某個帳號」在「某個目錄」下、有讀取/寫入/執行權限的所有目錄
+
+## [0.4] - 2018-06-05
+### Added
+# - 增加功能8, 查「某個帳號」在「某個目錄」下、同時「讀取、寫入、執行」權限的所有目錄
+# - 增加三個 func, 查「某個帳號」在「某個目錄」下、有讀取/寫入/執行權限的所有目錄
+
+## [0.3] - 2018-05-16
+### Fixed
+# - 修正 linux 的部分，已在 SuSE12sp1, Centos7.4 測試過.
+# - AIX 的部分測試完了.
+
+## [0.2] - 2018-05-11
+### Fixed
+# - 修正 check_permission_and_md5 的AIX istat換行.
+
+## [0.1] - 2018-05-07
+### Added
+# - First audit release.
+# - 1. 檢查檔案權限
+# - 2. 檢查檔案 hash
+# - 3. 產生檔案權限基準檔      
+# - 4. 產生檔案 hash 基準檔
+# - User story.
+
 _HOME="/src/mwadmin/check_permission_and_md5"
 
 BASE_PERMISSION="$_HOME/BASE_PERMISSION"
 PERMISSION_REPORT="$_HOME/PERMISSION_report_$(hostname)_$(date +%Y%m%d).txt"
-DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION="/bin /sbin /usr/bin /usr/sbin /etc"
+DIRECTORY_YOU_WANT_TO_CHECK_PERMISSION="/bin /sbin /usr/bin /usr/sbin /etc"
 
 BASE_MD5="$_HOME/BASE_MD5"
 MD5_REPORT="$_HOME/MD5_report_$(hostname)_$(date +%Y%m%d).txt"
-DIRECTORY_YOU_WAT_TO_CHECK_MD5=$DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION
+DIRECTORY_YOU_WANT_TO_CHECK_MD5=$DIRECTORY_YOU_WANT_TO_CHECK_PERMISSION
 
-DIRS_YOU_WANT_TO_CHECK="/home /home/spos2"
-
+DIRECTORY_YOU_WANT_TO_CHECK="/home /home/spos2"
 
 if [[ "$(uname)" = "Linux" ]]; then
   OS="Linux"
@@ -47,47 +89,107 @@ show_main_menu() {
        Hostname: $(hostname), Today is $(date +%Y-%m-%d)
   +====================================================================+
 
-      1. 檢查檔案權限
+      1. 檢查檔案與目錄權限
       2. 檢查檔案 hash
 
-      3. 產生檔案權限基準檔
+      3. 產生檔案與目錄權限基準檔
       4. 產生檔案 hash 基準檔
       
       5. 指定一或多個目錄，列出哪些帳號具有該目錄的「讀取」權限
       6. 指定一或多個目錄，列出哪些帳號具有該目錄的「寫入」權限
       7. 指定一或多個目錄，列出哪些帳號具有該目錄的「執行」權限
 
-        ## 請在 script 中變更 xx 參數來指定目錄
-
       q.QUIT
 
 EOF
 }
 
+list_users_who_can_read_the_dir() {
+  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
+  # 檢查這些帳號是否可以讀取變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後列出
+  #
+  # 範例
+  # List who can read /home :
+  # root
 
+  # List who can read /home/spos2 :
+  # root
+  # spos2
+
+  ids=$(cat /etc/passwd |
+    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
+
+  for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
+
+    echo "List who can read $dir :"
+
+    for id in $ids; do
+      su - $id -c "test -r '$dir'" >/dev/null 2>&1 && echo $id
+    done
+
+    echo ""
+
+  done
+}
 
 list_users_who_can_write_the_dir() {
-  ids=$(cat /etc/passwd | awk -F':' '( $NF == "/bin/bash") {print $1}' )
+  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
+  # 檢查這些帳號是否可以寫入變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後列出
+  #
+  # 範例
+  # List who can write /home :
+  # root
 
-  for dir in $DIRS_YOU_WANT_TO_CHECK; do
+  # List who can write /home/spos2 :
+  # root
+  # spos2
+
+  ids=$(cat /etc/passwd |
+    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
+
+  for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
 
     echo "List who can write $dir :"
 
     for id in $ids; do
-      #echo "DEBUG: id=$id"
       su - $id -c "test -w '$dir'" >/dev/null 2>&1 && echo $id
     done
 
     echo ""
 
   done
-
 }
 
+list_users_who_can_exec_the_dir() {
+  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
+  # 檢查這些帳號是否可以執行變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後列出
+  #
+  # 範例
+  # List who can exec /home :
+  # root
 
+  # List who can exec /home/spos2 :
+  # root
+  # spos2
+
+  ids=$(cat /etc/passwd |
+    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
+
+  for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
+
+    echo "List who can exec $dir :"
+
+    for id in $ids; do
+      su - $id -c "test -x '$dir'" >/dev/null 2>&1 && echo $id
+    done
+
+    echo ""
+
+  done
+}
 
 create_base_permission() {
-  # 依照 DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION 所指定的目錄
+  # 依照 DIRECTORY_YOU_WANT_TO_CHECK_PERMISSION 所指定的目錄
   # 排除檔案 exclude_file 中列舉的檔案名稱
   # 產生權限列表至 $BASE_PERMISSION
   #
@@ -98,18 +200,18 @@ create_base_permission() {
   # /usr/bin/xargs -rwxr-xr-x 0 0  
   echo "Please wait..."
   rm $BASE_PERMISSION >/dev/null 2>&1
-  for dir in $DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION; do
+  for dir in $DIRECTORY_YOU_WANT_TO_CHECK_PERMISSION; do
     echo "Parsing $dir permission now..."
     echo ""
     if [[ $OS = "Linux" ]]; then
 
-      for i in $(find $dir -type f | grep -v -f exclude_file); do
+      for i in $(find $dir | grep -v -f exclude_file); do
         stat -c '%n %A %g %u' $i >>$BASE_PERMISSION
       done
 
     else
 
-      for i in $(find $dir -type f | grep -v -f exclude_file); do
+      for i in $(find $dir | grep -v -f exclude_file); do
         echo $i" \c" >>$BASE_PERMISSION
         istat $i | tr '\n' ' ' | awk '{print $8, $10, $12}' >>$BASE_PERMISSION
       done
@@ -120,7 +222,7 @@ create_base_permission() {
 }
 
 create_permission_today() {
-  # 依照 DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION 所指定的目錄
+  # 依照 DIRECTORY_YOU_WANT_TO_CHECK_PERMISSION 所指定的目錄
   # 排除檔案 exclude_file 中列舉的檔案名稱  
   # 產生權限列表至臨時檔案 $BASE_PERMISSION
   #
@@ -132,18 +234,18 @@ create_permission_today() {
 
   echo "Please wait..."
   _permission_today="$RANDOM"_temp
-  for dir in $DIRECTORY_YOU_WAT_TO_CHECK_PERMISSION; do
+  for dir in $DIRECTORY_YOU_WANT_TO_CHECK_PERMISSION; do
     echo "Parsing $dir permission now..."
     echo ""
     if [[ $OS = "Linux" ]]; then
 
-      for i in $(find $dir -type f | grep -v -f exclude_file); do
+      for i in $(find $dir | grep -v -f exclude_file); do
         stat -c '%n %A %g %u' $i >>$_permission_today
       done
 
     else
 
-      for i in $(find $dir -type f | grep -v -f exclude_file); do
+      for i in $(find $dir | grep -v -f exclude_file); do
         echo $i" \c" >>$_permission_today
         istat $i | tr '\n' ' ' | awk '{print $8, $10, $12}' >>$_permission_today
       done
@@ -174,7 +276,7 @@ check_permission() {
 }
 
 create_base_md5() {
-  # 依照 DIRECTORY_YOU_WAT_TO_CHECK_MD5 所指定的目錄
+  # 依照 DIRECTORY_YOU_WANT_TO_CHECK_MD5 所指定的目錄
   # 排除檔案 exclude_file 中列舉的檔案名稱  
   # 產生 md5 列表至 $BASE_MD5
   #
@@ -186,7 +288,7 @@ create_base_md5() {
 
   echo "Please wait..."
   rm $BASE_MD5 >/dev/null 2>&1
-  for dir in $DIRECTORY_YOU_WAT_TO_CHECK_MD5; do
+  for dir in $DIRECTORY_YOU_WANT_TO_CHECK_MD5; do
     echo "Parsing $dir hash now..."
     echo ""
     if [[ $OS = "Linux" ]]; then
@@ -207,7 +309,7 @@ create_base_md5() {
 }
 
 create_md5_today() {
-  # 依照 DIRECTORY_YOU_WAT_TO_CHECK_MD5 所指定的目錄
+  # 依照 DIRECTORY_YOU_WANT_TO_CHECK_MD5 所指定的目錄
   # 排除檔案 exclude_file 中列舉的檔案名稱  
   # 產生 md5 列表至 $_md5_today
   #
@@ -219,7 +321,7 @@ create_md5_today() {
 
   _md5_today="$RANDOM"_temp
 
-  for dir in $DIRECTORY_YOU_WAT_TO_CHECK_MD5; do
+  for dir in $DIRECTORY_YOU_WANT_TO_CHECK_MD5; do
     echo "Parsing $dir hash now..."
     echo ""
     if [[ $OS = "Linux" ]]; then
@@ -272,10 +374,9 @@ main() {
     2) check_md5 ;;
     3) create_base_permission ;;
     4) create_base_md5 ;;
-    # 5) find_readable_directory_by_user ;;
+    5) list_users_who_can_read_the_dir ;;
     6) list_users_who_can_write_the_dir ;;
-    # 7) find_executable_directory_by_user ;;
-    # 8) find_full_permission_directory_by_user ;;
+    7) list_users_who_can_exec_the_dir ;;
     [Qq])
       echo ''
       echo 'Thanks !! bye bye ^-^ !!!'
