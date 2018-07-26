@@ -28,6 +28,13 @@
 
 ## [Unreleased]
 # AIX 有 suid 的部分，在比對檔案權限時有問題(多一個 suid欄位)
+# 產生檔案與目錄權限基準檔 但是要by帳號
+
+## [0.6] - 2018-07-26
+### Added
+# - 8. 列出某帳號可以讀取哪些目錄
+# - 9. 列出某帳號可以寫入哪些目錄
+# - 10. 列出某帳號可以執行哪些目錄
 
 ## [0.5] - 2018-07-25
 ### Added
@@ -73,7 +80,7 @@ BASE_MD5="$_HOME/BASE_MD5"
 MD5_REPORT="$_HOME/MD5_report_$(hostname)_$(date +%Y%m%d).txt"
 DIRECTORY_YOU_WANT_TO_CHECK_MD5=$DIRECTORY_YOU_WANT_TO_CHECK_PERMISSION
 
-DIRECTORY_YOU_WANT_TO_CHECK="/home /home/spos2"
+DIRECTORY_YOU_WANT_TO_CHECK="/home /home/spos2 /usr /bin /sbin"
 
 if [[ "$(uname)" = "Linux" ]]; then
   OS="Linux"
@@ -99,9 +106,81 @@ show_main_menu() {
       6. 指定一或多個目錄，列出哪些帳號具有該目錄的「寫入」權限
       7. 指定一或多個目錄，列出哪些帳號具有該目錄的「執行」權限
 
+      8. 列出某帳號可以讀取哪些目錄
+      9. 列出某帳號可以寫入哪些目錄
+      10. 列出某帳號可以執行哪些目錄
+
+      產生檔案與目錄權限基準檔 但是要by帳號
+
       q.QUIT
 
 EOF
+}
+
+list_dirs_read_by_user() {
+  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
+  # 檢查這些帳號是否可以讀取變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後
+  # 以帳號別列出
+  #
+  # 範例
+
+  # spos6 can read these dirs:
+  # /home
+  # /home/spos2
+  # /usr
+  # /bin
+  # /sbin
+
+  ids=$(cat /etc/passwd |
+    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
+
+  for id in $ids; do
+
+    echo "$id can read these dirs:"
+    for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
+      su - $id -c "test -r '$dir'" >/dev/null 2>&1 && echo $dir
+    done
+
+    echo ""
+  done
+}
+
+list_dirs_write_by_user() {
+  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
+  # 檢查這些帳號是否可以寫入變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後
+  # 以帳號別列出
+
+  ids=$(cat /etc/passwd |
+    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
+
+  for id in $ids; do
+
+    echo "$id can write these dirs:"
+    for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
+      su - $id -c "test -w '$dir'" >/dev/null 2>&1 && echo $dir
+    done
+
+    echo ""
+  done
+}
+
+list_dirs_exec_by_user() {
+  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
+  # 檢查這些帳號是否可以執行變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後
+  # 以帳號別列出
+
+  ids=$(cat /etc/passwd |
+    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
+
+  for id in $ids; do
+
+    echo "$id can exec these dirs:"
+    for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
+      su - $id -c "test -x '$dir'" >/dev/null 2>&1 && echo $dir
+    done
+
+    echo ""
+  done
 }
 
 list_users_who_can_read_the_dir() {
@@ -377,6 +456,9 @@ main() {
     5) list_users_who_can_read_the_dir ;;
     6) list_users_who_can_write_the_dir ;;
     7) list_users_who_can_exec_the_dir ;;
+    8) list_dirs_read_by_user ;;
+    9) list_dirs_write_by_user ;;
+    10) list_dirs_exec_by_user ;;
     [Qq])
       echo ''
       echo 'Thanks !! bye bye ^-^ !!!'
