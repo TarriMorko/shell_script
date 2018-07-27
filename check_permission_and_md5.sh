@@ -31,6 +31,11 @@
 # 產生檔案與目錄權限基準檔 但是要by帳號
 
 ##
+## [0.7.5] - 2018-07-27
+### Added
+# - 12. 列出某帳號可以讀取、寫入、執行、哪些目錄以及其子目錄
+
+##
 ## [0.7] - 2018-07-27
 ### Added
 # - 11. 列出某帳號可以讀取、寫入、執行、哪些目錄
@@ -85,7 +90,7 @@ BASE_MD5="$_HOME/BASE_MD5"
 MD5_REPORT="$_HOME/MD5_report_$(hostname)_$(date +%Y%m%d).txt"
 DIRECTORY_YOU_WANT_TO_CHECK_MD5=$DIRECTORY_YOU_WANT_TO_CHECK_PERMISSION
 
-DIRECTORY_YOU_WANT_TO_CHECK="/home /home/spos2 /usr /bin /sbin /src"
+DIRECTORY_YOU_WANT_TO_CHECK="/home /home/spos2 /src"
 
 if [[ "$(uname)" = "Linux" ]]; then
   OS="Linux"
@@ -111,6 +116,7 @@ show_main_menu() {
       6. 指定一或多個目錄，列出哪些帳號具有該目錄的「寫入」權限
       7. 指定一或多個目錄，列出哪些帳號具有該目錄的「執行」權限
       11. 列出某帳號可以讀取、寫入、執行、哪些目錄
+      12. 11 的 tree 版本
       
       8. 列出某帳號可以讀取哪些目錄
       9. 列出某帳號可以寫入哪些目錄
@@ -123,24 +129,50 @@ show_main_menu() {
 EOF
 }
 
+# ls -R | grep ":$" | sed 's/:$//' | sed 's/[^-][^\/]*\//--/g' | sed 's/^/ /' | sed 's/-/|/'
 
-list_dirs_permissions_by_user() {
+
+list_dirs_tree_by_user() {
+  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
+  # 檢查這些帳號是否可以 read write exec 變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄以及子目錄
+  # 以帳號別列出
+  #
+  # 範例
+
+  # spos2    read       exec /home
+  # spos2                    /home/spos1
+  # spos2                    /home/spos1/test1
+  # spos2    read write exec /home/spos2
+  # spos2    read       exec /home/spos2/test1
+  # spos2                    /home/spos3
+
+
   ids=$(cat /etc/passwd |
     awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
 
+  ids="spos2" # DEBUG 
   for id in $ids; do
 
     echo "$id read write exec directory:"
     for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
 
-      _readable=false
-      _writable=false
-      _execable=false
+      echo ""
+      echo "DEBUG: 指定要檢查的根目錄 $dir "
+      dir_tree=$(ls -R $dir | grep ":$" | sed 's/:$//')
+      # echo "DEBUG: 檢查dir_tree的值：" $dir_tree
+      for deep_dir in $dir_tree; do
+        # echo "DEBUG: $deep_dir "
+        _readable=""
+        _writable=""
+        _execable=""
 
-      su - $id -c "test -r '$dir'" >/dev/null 2>&1 && _readable=true
-      su - $id -c "test -w '$dir'" >/dev/null 2>&1 && _writable=true
-      su - $id -c "test -x '$dir'" >/dev/null 2>&1 && _execable=true
-      echo "$id $_readable $_writable $_execable $dir"
+        su - $id -c "test -r '$deep_dir'" >/dev/null 2>&1 && _readable="read"
+        su - $id -c "test -w '$deep_dir'" >/dev/null 2>&1 && _writable="write"
+        su - $id -c "test -x '$deep_dir'" >/dev/null 2>&1 && _execable="exec"
+        
+        # printf "%-8s %-6s %-6s %-6s %-s \n" $id "$_readable" "$_writable" "$_execable" $( echo $deep_dir | sed 's/[^-][^\/]*\//--/g' | sed 's/^/ /' | sed 's/-/|/' )
+        printf "%-8s %-4s %-5s %-4s %-s \n" $id "$_readable" "$_writable" "$_execable" $deep_dir
+      done
     done
 
     echo ""
@@ -491,6 +523,7 @@ main() {
     9) list_dirs_write_by_user ;;
     10) list_dirs_exec_by_user ;;
     11) list_dirs_permissions_by_user;;
+    12) list_dirs_tree_by_user;;
     [Qq])
       echo ''
       echo 'Thanks !! bye bye ^-^ !!!'
