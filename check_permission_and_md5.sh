@@ -30,6 +30,11 @@
 # AIX 有 suid 的部分，在比對檔案權限時有問題(多一個 suid欄位)
 # 產生檔案與目錄權限基準檔 但是要by帳號
 
+##
+## [0.7] - 2018-07-27
+### Added
+# - 11. 列出某帳號可以讀取、寫入、執行、哪些目錄
+
 ## [0.6] - 2018-07-26
 ### Added
 # - 8. 列出某帳號可以讀取哪些目錄
@@ -80,7 +85,7 @@ BASE_MD5="$_HOME/BASE_MD5"
 MD5_REPORT="$_HOME/MD5_report_$(hostname)_$(date +%Y%m%d).txt"
 DIRECTORY_YOU_WANT_TO_CHECK_MD5=$DIRECTORY_YOU_WANT_TO_CHECK_PERMISSION
 
-DIRECTORY_YOU_WANT_TO_CHECK="/home /home/spos2 /usr /bin /sbin"
+DIRECTORY_YOU_WANT_TO_CHECK="/home /home/spos2 /usr /bin /sbin /src"
 
 if [[ "$(uname)" = "Linux" ]]; then
   OS="Linux"
@@ -105,7 +110,8 @@ show_main_menu() {
       5. 指定一或多個目錄，列出哪些帳號具有該目錄的「讀取」權限
       6. 指定一或多個目錄，列出哪些帳號具有該目錄的「寫入」權限
       7. 指定一或多個目錄，列出哪些帳號具有該目錄的「執行」權限
-
+      11. 列出某帳號可以讀取、寫入、執行、哪些目錄
+      
       8. 列出某帳號可以讀取哪些目錄
       9. 列出某帳號可以寫入哪些目錄
       10. 列出某帳號可以執行哪些目錄
@@ -116,6 +122,31 @@ show_main_menu() {
 
 EOF
 }
+
+
+list_dirs_permissions_by_user() {
+  ids=$(cat /etc/passwd |
+    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
+
+  for id in $ids; do
+
+    echo "$id read write exec directory:"
+    for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
+
+      _readable=false
+      _writable=false
+      _execable=false
+
+      su - $id -c "test -r '$dir'" >/dev/null 2>&1 && _readable=true
+      su - $id -c "test -w '$dir'" >/dev/null 2>&1 && _writable=true
+      su - $id -c "test -x '$dir'" >/dev/null 2>&1 && _execable=true
+      echo "$id $_readable $_writable $_execable $dir"
+    done
+
+    echo ""
+  done
+}
+
 
 list_dirs_read_by_user() {
   # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
@@ -459,6 +490,7 @@ main() {
     8) list_dirs_read_by_user ;;
     9) list_dirs_write_by_user ;;
     10) list_dirs_exec_by_user ;;
+    11) list_dirs_permissions_by_user;;
     [Qq])
       echo ''
       echo 'Thanks !! bye bye ^-^ !!!'

@@ -7,7 +7,8 @@
             "label": "SSH somethin",
             "type": "shell",
             // "command": "scp check_permission_and_md5.sh root@192.168.142.129:~;  ssh root@192.168.142.129 '~/check_permission_and_md5.sh'",
-            "command": "scp check_permission_and_md5.sh spos2@192.168.142.141:/src/mwadmin/check_permission_and_md5",
+            // "command": "scp check_permission_and_md5.sh spos2@192.168.142.141:/src/mwadmin/check_permission_and_md5",
+            "command": "scp check_permission_and_md5.sh root@192.168.142.129:/src/mwadmin/check_permission_and_md5",
         }
     ]
 }
