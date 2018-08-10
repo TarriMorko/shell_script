@@ -31,6 +31,12 @@
 # 產生檔案與目錄權限基準檔 但是要by帳號
 
 ##
+## [0.8] - 2018-08-10
+### fixed
+# - 保留 1, 2, 3, 4, 11 項功能
+# - 11. 改為 5. 其餘刪除
+
+##
 ## [0.7.5] - 2018-07-27
 ### Added
 # - 12. 列出某帳號可以讀取、寫入、執行、哪些目錄以及其子目錄
@@ -112,221 +118,41 @@ show_main_menu() {
       3. 產生檔案與目錄權限基準檔
       4. 產生檔案 hash 基準檔
       
-      5. 指定一或多個目錄，列出哪些帳號具有該目錄的「讀取」權限
-      6. 指定一或多個目錄，列出哪些帳號具有該目錄的「寫入」權限
-      7. 指定一或多個目錄，列出哪些帳號具有該目錄的「執行」權限
-      11. 列出某帳號可以讀取、寫入、執行、哪些目錄
-      12. 11 的 tree 版本
-      
-      8. 列出某帳號可以讀取哪些目錄
-      9. 列出某帳號可以寫入哪些目錄
-      10. 列出某帳號可以執行哪些目錄
-
-      產生檔案與目錄權限基準檔 但是要by帳號
+      5. 列出某帳號可以讀取、寫入、執行、哪些目錄
 
       q.QUIT
 
 EOF
 }
 
-# ls -R | grep ":$" | sed 's/:$//' | sed 's/[^-][^\/]*\//--/g' | sed 's/^/ /' | sed 's/-/|/'
-
-
-list_dirs_tree_by_user() {
+list_dirs_permissions_by_user() {
   # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
-  # 檢查這些帳號是否可以 read write exec 變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄以及子目錄
+  # 檢查這些帳號是否可以 read write exec 變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄
   # 以帳號別列出
   #
   # 範例
 
   # spos2    read       exec /home
-  # spos2                    /home/spos1
-  # spos2                    /home/spos1/test1
-  # spos2    read write exec /home/spos2
-  # spos2    read       exec /home/spos2/test1
-  # spos2                    /home/spos3
-
-
-  ids=$(cat /etc/passwd |
-    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
-
-  ids="spos2" # DEBUG 
-  for id in $ids; do
-
-    echo "$id read write exec directory:"
-    for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
-
-      echo ""
-      echo "DEBUG: 指定要檢查的根目錄 $dir "
-      dir_tree=$(ls -R $dir | grep ":$" | sed 's/:$//')
-      # echo "DEBUG: 檢查dir_tree的值：" $dir_tree
-      for deep_dir in $dir_tree; do
-        # echo "DEBUG: $deep_dir "
-        _readable=""
-        _writable=""
-        _execable=""
-
-        su - $id -c "test -r '$deep_dir'" >/dev/null 2>&1 && _readable="read"
-        su - $id -c "test -w '$deep_dir'" >/dev/null 2>&1 && _writable="write"
-        su - $id -c "test -x '$deep_dir'" >/dev/null 2>&1 && _execable="exec"
-        
-        # printf "%-8s %-6s %-6s %-6s %-s \n" $id "$_readable" "$_writable" "$_execable" $( echo $deep_dir | sed 's/[^-][^\/]*\//--/g' | sed 's/^/ /' | sed 's/-/|/' )
-        printf "%-8s %-4s %-5s %-4s %-s \n" $id "$_readable" "$_writable" "$_execable" $deep_dir
-      done
-    done
-
-    echo ""
-  done
-}
-
-
-list_dirs_read_by_user() {
-  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
-  # 檢查這些帳號是否可以讀取變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後
-  # 以帳號別列出
-  #
-  # 範例
-
-  # spos6 can read these dirs:
-  # /home
-  # /home/spos2
-  # /usr
-  # /bin
-  # /sbin
 
   ids=$(cat /etc/passwd |
     awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
 
   for id in $ids; do
 
-    echo "$id can read these dirs:"
-    for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
-      su - $id -c "test -r '$dir'" >/dev/null 2>&1 && echo $dir
+    for _dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
+
+      _readable=""
+      _writable=""
+      _execable=""
+
+      su - $id -c "test -r '$_dir'" >/dev/null 2>&1 && _readable="read"
+      su - $id -c "test -w '$_dir'" >/dev/null 2>&1 && _writable="write"
+      su - $id -c "test -x '$_dir'" >/dev/null 2>&1 && _execable="exec"
+
+      printf "%-8s %-4s %-5s %-4s %-s \n" $id "$_readable" "$_writable" "$_execable" "$_dir"
     done
 
     echo ""
-  done
-}
-
-list_dirs_write_by_user() {
-  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
-  # 檢查這些帳號是否可以寫入變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後
-  # 以帳號別列出
-
-  ids=$(cat /etc/passwd |
-    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
-
-  for id in $ids; do
-
-    echo "$id can write these dirs:"
-    for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
-      su - $id -c "test -w '$dir'" >/dev/null 2>&1 && echo $dir
-    done
-
-    echo ""
-  done
-}
-
-list_dirs_exec_by_user() {
-  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
-  # 檢查這些帳號是否可以執行變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後
-  # 以帳號別列出
-
-  ids=$(cat /etc/passwd |
-    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
-
-  for id in $ids; do
-
-    echo "$id can exec these dirs:"
-    for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
-      su - $id -c "test -x '$dir'" >/dev/null 2>&1 && echo $dir
-    done
-
-    echo ""
-  done
-}
-
-list_users_who_can_read_the_dir() {
-  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
-  # 檢查這些帳號是否可以讀取變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後列出
-  #
-  # 範例
-  # List who can read /home :
-  # root
-
-  # List who can read /home/spos2 :
-  # root
-  # spos2
-
-  ids=$(cat /etc/passwd |
-    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
-
-  for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
-
-    echo "List who can read $dir :"
-
-    for id in $ids; do
-      su - $id -c "test -r '$dir'" >/dev/null 2>&1 && echo $id
-    done
-
-    echo ""
-
-  done
-}
-
-list_users_who_can_write_the_dir() {
-  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
-  # 檢查這些帳號是否可以寫入變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後列出
-  #
-  # 範例
-  # List who can write /home :
-  # root
-
-  # List who can write /home/spos2 :
-  # root
-  # spos2
-
-  ids=$(cat /etc/passwd |
-    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
-
-  for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
-
-    echo "List who can write $dir :"
-
-    for id in $ids; do
-      su - $id -c "test -w '$dir'" >/dev/null 2>&1 && echo $id
-    done
-
-    echo ""
-
-  done
-}
-
-list_users_who_can_exec_the_dir() {
-  # 取出 /etc/passwd 中，sh 為 /bin/bash 或 /bin/ksh 的帳號
-  # 檢查這些帳號是否可以執行變數 DIRECTORY_YOU_WANT_TO_CHECK 中指定的目錄後列出
-  #
-  # 範例
-  # List who can exec /home :
-  # root
-
-  # List who can exec /home/spos2 :
-  # root
-  # spos2
-
-  ids=$(cat /etc/passwd |
-    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
-
-  for dir in $DIRECTORY_YOU_WANT_TO_CHECK; do
-
-    echo "List who can exec $dir :"
-
-    for id in $ids; do
-      su - $id -c "test -x '$dir'" >/dev/null 2>&1 && echo $id
-    done
-
-    echo ""
-
   done
 }
 
@@ -516,14 +342,7 @@ main() {
     2) check_md5 ;;
     3) create_base_permission ;;
     4) create_base_md5 ;;
-    5) list_users_who_can_read_the_dir ;;
-    6) list_users_who_can_write_the_dir ;;
-    7) list_users_who_can_exec_the_dir ;;
-    8) list_dirs_read_by_user ;;
-    9) list_dirs_write_by_user ;;
-    10) list_dirs_exec_by_user ;;
-    11) list_dirs_permissions_by_user;;
-    12) list_dirs_tree_by_user;;
+    5) list_dirs_permissions_by_user ;;
     [Qq])
       echo ''
       echo 'Thanks !! bye bye ^-^ !!!'
