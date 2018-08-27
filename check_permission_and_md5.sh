@@ -134,8 +134,7 @@ list_dirs_permissions_by_user() {
 
   # spos2    read       exec /home
 
-  ids=$(cat /etc/passwd |
-    awk -F':' '( $NF == "/bin/bash") || ( $NF == "/bin/ksh") {print $1}')
+  ids=$(cat /etc/passwd | awk -F':' '/.*sh$/  {print $1}')
 
   for id in $ids; do
 
@@ -311,15 +310,17 @@ create_md5_today() {
 
 diff_md5_today_with_BASE() {
   diff $BASE_MD5 $_md5_today >$MD5_REPORT
+  
 
   if [[ $? -eq 0 ]]; then
     echo ""
     echo "MD5 Audit passed."
-    echo "MD5 Audit passed." >>$MD5_REPORT
+    # echo "MD5 Audit passed." >>$MD5_REPORT
   else
     echo ""
     echo "MD5 Audit failed. check $MD5_REPORT for detail."
-    echo "MD5 Audit failed." >>$MD5_REPORT
+    cat $MD5_REPORT | awk '{print $3}' | grep -v ^$ | sort | uniq | xargs -I {} echo "異動的檔案在此： {}"
+    # echo "MD5 Audit failed." >>$MD5_REPORT
   fi
 
   rm $_md5_today
