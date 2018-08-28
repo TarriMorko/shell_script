@@ -310,17 +310,18 @@ create_md5_today() {
 
 diff_md5_today_with_BASE() {
   diff $BASE_MD5 $_md5_today >$MD5_REPORT
-  
 
   if [[ $? -eq 0 ]]; then
     echo ""
     echo "MD5 Audit passed."
     # echo "MD5 Audit passed." >>$MD5_REPORT
   else
-    echo ""
-    echo "MD5 Audit failed. check $MD5_REPORT for detail."
-    cat $MD5_REPORT | awk '{print $3}' | grep -v ^$ | sort | uniq | xargs -I {} echo "異動的檔案在此： {}"
-    # echo "MD5 Audit failed." >>$MD5_REPORT
+    echo "檢查結果："
+    echo "============================================================="
+    cat $MD5_REPORT | grep ">\|<" | awk '{print $NF}' | sort | uniq | xargs -I {} echo "這些檔案發生變動： {}"
+    echo "============================================================="
+    echo "MD5 Audit failed."
+    echo "check $MD5_REPORT for detail."
   fi
 
   rm $_md5_today
