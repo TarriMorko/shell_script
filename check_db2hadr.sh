@@ -2,9 +2,12 @@
 #
 # execute by instance owner
 
+START_TIME=5
 DETECT_TIME=30
 WAIT_TIME_FOR_CONNECTION_TEST=30
 LOGFILENAME="/home/db2inst1/check_db2hadr.log"
+GPFSFILE="/tmp/current_time.txt"
+
 
 writelog() {
   #######################################
@@ -24,29 +27,26 @@ writelog() {
   #_caller=$(echo $0 | cut -d'/' -f2)
   _caller=$(echo ${0##*/} | awk '{print substr($0,1,16)}')
   log_message=$@
-  echo "$(date +"%Y-%m-%d %H:%M:%S") [$_caller] ${log_message}"  | tee -a ${LOGFILENAME}
+  echo "$(date +"%Y-%m-%d %H:%M:%S") [$_caller] ${log_message}" | tee -a ${LOGFILENAME}
 }
 typeset -fx writelog
 
-
-
-
-echo "check_db2hadr.sh 的 pid 是 $$"
-
+writelog "Wait $START_TIME sec."
+sleep $START_TIME
 
 connect_test() {
+  CONNECTIONRESULT=""
   db2 connect to REMOTE_S user db2inst1 using 2iliaxZ 1>>$LOGFILENAME 2>&1
+  if [[ $? -eq 0 ]]; then
+    CONNECTIONRESULT="True"
+  else
+    CONNECTIONRESULT="False"
+  fi
   db2 -x "select current timestamp from sysibm.sysdummy1" >timestamp.txt
   writelog "Get timestamp: " $(cat timestamp.txt)
 
-  # 這段有可能因為連線異常而馬上終止，比方說 primary db 根本沒起、馬上返回一個無法連線
-  # 2018-10-30 21:22:00 [chec] Get timestamp: SQL1024N 資料庫連接不存在。 SQLSTATE=08003
-  #
-  # 我需要處理這種狀況嗎？
-
   sleep 100 # simulate hang # DEBUG
 }
-
 
 while [ true ]; do
 
@@ -60,36 +60,42 @@ while [ true ]; do
     continue
   fi
 
-
   HADR_STATE=$(db2pd -d sample -hadr | grep HADR_STATE | awk -F'=' '{print $NF}' | sed 's/ //g')
-  
+
   if [ "${HADR_STATE}" == "PEER" ]; then
-    writelog "PEER la! sleep $DETECT_TIME sec."
+    writelog "HADR state PEER"
     sleep $DETECT_TIME
     continue
   fi
 
-
-  writelog "HADR_STAT is in $HADR_STATE, start a connection test..."
+  writelog "HADR state $HADR_STATE, start a connection test..."
   connect_test &
   connect_test_PID=$!
-  echo "connect_test 的 pid 是 $connect_test_PID" # DEBUG
-  
+  writelog "wait $WAIT_TIME_FOR_CONNECTION_TEST sec."
   sleep $WAIT_TIME_FOR_CONNECTION_TEST
-  ps -p $connect_test_PID # >/dev/null 2>&1
-  if [ $? -eq 0 ]; then
+  ps -p $connect_test_PID >/dev/null 2>&1
+
+  if [ $? -eq 0 -o "${CONNECTIONRESULT}" == "False" ]; then
     # connection hang
-    writelog "Do Something. terminate"
-    exit 1
-    # do something 
+    writelog "Connection hang or fail."
   else
-    # connection end immediately. include connection fail.
     writelog "Do nothing. sleep $DETECT_TIME sec."
     sleep $DETECT_TIME
     continue
   fi
 
-
+  writelog "check GPFS file."
+  standby_time=$(date +%H:%M)
+  primary_time=$(awk -F':' '{print $1 ":" $2}' $GPFSFILE)
+  writelog "standby_time: $standby_time" # DEBUG
+  writelog "primary_time: $primary_time" # DEBUG
+  if ! [ "${standby_time}" == "${primary_time}" ]; then
+    writelog "要叫救護車了"
+    # do something  
+    exit 1
+  else
+    writelog "sleep $DETECT_TIME sec."
+    sleep $DETECT_TIME
+  fi
 
 done
-
