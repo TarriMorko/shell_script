@@ -2,9 +2,9 @@
 #
 # execute by instance owner
 
-START_TIME=1
-DETECT_TIME=3
-WAIT_TIME_FOR_CONNECTION_TEST=3
+START_TIME=30
+DETECT_TIME=60
+WAIT_TIME_FOR_CONNECTION_TEST=60
 LOGFILENAME="/home/db2inst1/check_db2hadr.log"
 GPFSFILE="/tmp/current_time.txt"
 
@@ -33,12 +33,12 @@ connect_test() {
   #######################################
   # Create a connection test to primary database.
   #######################################  
-  CONNECTIONRESULT=""
+  touch CONNECTIONRESULT
   db2 connect to REMOTE_S user db2inst1 using 2iliaxZ 1>>$LOGFILENAME 2>&1
   if [[ $? -eq 0 ]]; then
-    CONNECTIONRESULT="True"
+    echo "True" >CONNECTIONRESULT
   else
-    CONNECTIONRESULT="False"
+    echo "False" >CONNECTIONRESULT
   fi
   db2 -x "select current timestamp from sysibm.sysdummy1" >timestamp.txt
   writelog "Get timestamp: " $(cat timestamp.txt)
@@ -78,9 +78,9 @@ is_primary_db_able_to_connect() {
   connect_test_PID=$!
   writelog "wait $WAIT_TIME_FOR_CONNECTION_TEST sec."
   sleep $WAIT_TIME_FOR_CONNECTION_TEST
-  ps -p $connect_test_PID >/dev/null 2>&1
-
-  if [ $? -eq 0 -o "${CONNECTIONRESULT}" == "False" ]; then
+  ps -p $connect_test_PID # >/dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 -o "$(cat CONNECTIONRESULT)" == "False" ]; then
     # connection hang
     writelog "Connection to primary db hang or fail."
     return 1
@@ -136,6 +136,6 @@ while [ true ]; do
 
   is_primary_db_able_to_connect && continue
 
-  is_GPFS_can_read && continue
+  is_GPFS_can_read || exit
 
 done
