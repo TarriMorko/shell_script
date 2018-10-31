@@ -130,9 +130,9 @@ while [ true ]; do
 
   sleep $DETECT_TIME
 
-  is_hadr_role_standby || exit # 是 standby 應該要往下, 不是應該退出
+  is_hadr_role_standby || exit # 不是 standby 就退出
 
-  is_hadr_state_peer && continue # 是 peer 應該 continue,  不是 peer 要往下
+  is_hadr_state_peer && continue # peer 就繼續 loop,  不是 peer 需要往下檢查
 
   is_primary_db_able_to_connect && continue
 
