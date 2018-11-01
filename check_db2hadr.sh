@@ -2,9 +2,9 @@
 #
 # execute by instance owner
 
-START_TIME=30
-DETECT_TIME=60
-WAIT_TIME_FOR_CONNECTION_TEST=60
+START_TIME=3
+DETECT_TIME=6
+WAIT_TIME_FOR_CONNECTION_TEST=6
 LOGFILENAME="/home/db2inst1/check_db2hadr.log"
 GPFSFILE="/tmp/current_time.txt"
 
@@ -53,10 +53,12 @@ is_hadr_role_standby() {
     return 0
   elif [ "${HADR_ROLE}" == "" ]; then
     writelog "Can not get HADR_ROLE."
+    writelog "TERMINATE."
     return 1
   else
     writelog "HADR ROLE is ${HADR_ROLE}."
-    writelog "This script should run on DB2 HADR STANDBY."
+    writelog "This script should run on DB2 HADR STANDBY. "
+    writelog "TERMINATE."
     return 1
   fi
 }
@@ -71,6 +73,7 @@ is_hadr_state_peer() {
     return 1
   fi
 }
+
 
 is_primary_db_able_to_connect() {
   writelog "HADR state $HADR_STATE, start a connection test..."
@@ -89,6 +92,7 @@ is_primary_db_able_to_connect() {
     return 0
   fi
 }
+
 
 is_GPFS_can_read() {
   writelog "check GPFS file."
@@ -114,8 +118,8 @@ is_GPFS_can_read() {
     writelog "GPFS works."
     return 0
   fi
-
 }
+
 writelog "Wait $START_TIME sec for first check."
 sleep $START_TIME
 writelog "Start first connection test."
@@ -134,8 +138,10 @@ while [ true ]; do
 
   is_hadr_state_peer && continue # peer 就繼續 loop,  不是 peer 需要往下檢查
 
-  is_primary_db_able_to_connect && continue
+  is_primary_db_able_to_connect && continue  # 可連線到 primary 就繼續 loop，不能連就往下檢查
 
-  is_GPFS_can_read || exit
+  is_GPFS_can_read && continue  # 可讀取到 GPFS 檔案且時間誤差在一分鐘之內就繼續 loop, 不能就往下
+
+  writelog "Shutdown primary."
 
 done
