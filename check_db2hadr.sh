@@ -2,9 +2,9 @@
 #
 # execute by instance owner
 
-START_TIME=3
-DETECT_TIME=6
-WAIT_TIME_FOR_CONNECTION_TEST=6
+START_TIME=30
+DETECT_TIME=60
+WAIT_TIME_FOR_CONNECTION_TEST=60
 LOGFILENAME="/home/db2inst1/check_db2hadr.log"
 GPFSFILE="/tmp/current_time.txt"
 
@@ -47,6 +47,12 @@ connect_test() {
 }
 
 is_hadr_role_standby() {
+  #######################################
+  # Check db2 hadr role
+  # Returns:
+  #    0 : db2 hadr role is STANDBY
+  #    1 : db2 hadr role is NOT STANDBY
+  #######################################  
   HADR_ROLE=$(db2pd -d sample -hadr | grep HADR_ROLE | awk -F'=' '{print $NF}' | sed 's/ //g')
 
   if [ "${HADR_ROLE}" == "STANDBY" ]; then
@@ -64,6 +70,12 @@ is_hadr_role_standby() {
 }
 
 is_hadr_state_peer() {
+  #######################################
+  # Check db2 hadr state
+  # Returns:
+  #    0 : db2 hadr state is PEER
+  #    1 : db2 hadr state is NOT PEER
+  #######################################   
   HADR_STATE=$(db2pd -d sample -hadr | grep HADR_STATE | awk -F'=' '{print $NF}' | sed 's/ //g')
   writelog "HADR state $HADR_STATE"
 
@@ -76,6 +88,12 @@ is_hadr_state_peer() {
 
 
 is_primary_db_able_to_connect() {
+  #######################################
+  # Connect to primary db
+  # Returns:
+  #    0 : Able_to_connect primary db
+  #    1 : Unable_to_connect primary db or timeout
+  #######################################   
   writelog "HADR state $HADR_STATE, start a connection test..."
   connect_test &
   connect_test_PID=$!
@@ -95,6 +113,13 @@ is_primary_db_able_to_connect() {
 
 
 is_GPFS_can_read() {
+  #######################################
+  # Open a file in GPFS, check its content.
+  #
+  # Returns:
+  #    0 : The tolerance for timestamp in minutes is +-1
+  #    1 : The tolerance for timestamp in minutes is more then +-1
+  #######################################     
   writelog "check GPFS file."
   standby_time=$(date +%H:%M)
   primary_time=$(awk -F':' '{print $1 ":" $2}' $GPFSFILE)
@@ -122,25 +147,25 @@ is_GPFS_can_read() {
 
 writelog "Wait $START_TIME sec for first check."
 sleep $START_TIME
-writelog "Start first connection test."
+writelog "======= First connection test ========== "
 is_hadr_role_standby || exit 1
 is_hadr_state_peer || exit 1
 is_primary_db_able_to_connect || exit 1
 is_GPFS_can_read || exit 1
-writelog "Start first connection test done."
+writelog "======= First connection test done.====="
 
 
 while [ true ]; do
 
   sleep $DETECT_TIME
 
-  is_hadr_role_standby || exit # 不是 standby 就退出
+  is_hadr_role_standby || exit                 # 不是 standby 就退出
 
-  is_hadr_state_peer && continue # peer 就繼續 loop,  不是 peer 需要往下檢查
+  is_hadr_state_peer && continue               # peer 就繼續 loop,  不是 peer 需要往下檢查
 
-  is_primary_db_able_to_connect && continue  # 可連線到 primary 就繼續 loop，不能連就往下檢查
+  is_primary_db_able_to_connect && continue    # 可連線到 primary 就繼續 loop，不能連就往下檢查
 
-  is_GPFS_can_read && continue  # 可讀取到 GPFS 檔案且時間誤差在一分鐘之內就繼續 loop, 不能就往下
+  is_GPFS_can_read && continue                 # 可讀取到 GPFS 檔案且時間誤差在一分鐘之內就繼續 loop, 不能就往下
 
   writelog "Shutdown primary."
 
