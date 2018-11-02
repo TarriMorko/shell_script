@@ -2,11 +2,12 @@
 #
 # execute by instance owner
 
-START_TIME=30
+START_TIME=10
 DETECT_TIME=60
 WAIT_TIME_FOR_CONNECTION_TEST=60
 LOGFILENAME="/home/db2inst1/check_db2hadr.log"
-GPFSFILE="/tmp/current_time.txt"
+GPFSFILE="/tmp/current_timestamp.txt"
+GPFS_TIMEOUT=60
 
 writelog() {
   #######################################
@@ -86,7 +87,6 @@ is_hadr_state_peer() {
   fi
 }
 
-
 is_primary_db_able_to_connect() {
   #######################################
   # Connect to primary db
@@ -111,38 +111,34 @@ is_primary_db_able_to_connect() {
   fi
 }
 
-
 is_GPFS_can_read() {
   #######################################
   # Open a file in GPFS, check its content.
   #
   # Returns:
-  #    0 : The tolerance for timestamp in minutes is +-1
-  #    1 : The tolerance for timestamp in minutes is more then +-1
+  #    0 : The tolerance for timestamp in second less than $GPFS_TIMEOUT
+  #    1 : The tolerance for timestamp in second greater eq than $GPFS_TIMEOUT
   #######################################     
   writelog "check GPFS file."
-  standby_time=$(date +%H:%M)
-  primary_time=$(awk -F':' '{print $1 ":" $2}' $GPFSFILE)
+
+  standby_time=$(date +%s)
+  primary_time=$(cat $GPFSFILE)
+
   writelog "standby_time: $standby_time" # DEBUG
   writelog "primary_time: $primary_time" # DEBUG
-  if ! [ "${standby_time}" == "${primary_time}" ]; then
-    sleep 5 # check twice
-    standby_time=$(date +%H:%M)
-    primary_time=$(awk -F':' '{print $1 ":" $2}' $GPFSFILE)
-    writelog "check twice standby_time: $standby_time" # DEBUG
-    writelog "check twice primary_time: $primary_time" # DEBUG
-    if ! [ "${standby_time}" == "${primary_time}" ]; then
-      writelog "要叫救護車了"
-      # do something  
-      return 1
-    else
-      writelog "GPFS works."
-      return 0
-    fi
+
+  timestamp_diff=$(echo $standby_time - $primary_time | bc)
+
+  if [ $timestamp_diff -ge $GPFS_TIMEOUT ]; then
+    writelog "誤差 $timestamp_diff 秒"
+    writelog "要叫救護車了"
+    # do something  
+    return 1
   else
-    writelog "GPFS works."
+    writelog "誤差 $timestamp_diff 秒，在允許範圍內。"
     return 0
   fi
+
 }
 
 writelog "Wait $START_TIME sec for first check."
@@ -154,19 +150,24 @@ is_primary_db_able_to_connect || exit 1
 is_GPFS_can_read || exit 1
 writelog "======= First connection test done.====="
 
-
 while [ true ]; do
 
   sleep $DETECT_TIME
 
-  is_hadr_role_standby || exit                 # 不是 standby 就退出
+  is_hadr_role_standby || exit # 不是 standby 就退出
 
-  is_hadr_state_peer && continue               # peer 就繼續 loop,  不是 peer 需要往下檢查
+  is_hadr_state_peer && continue # peer 就繼續 loop,  不是 peer 需要往下檢查
 
-  is_primary_db_able_to_connect && continue    # 可連線到 primary 就繼續 loop，不能連就往下檢查
+  is_primary_db_able_to_connect && continue # 可連線到 primary 就繼續 loop，不能連就往下檢查
 
-  is_GPFS_can_read && continue                 # 可讀取到 GPFS 檔案且時間誤差在一分鐘之內就繼續 loop, 不能就往下
+  is_GPFS_can_read && continue # 可讀取到 GPFS 檔案且時間誤差在 $GPFS_TIMEOUT 秒之內就繼續 loop, 不能就往下
 
-  writelog "Shutdown primary."
+  writelog "Shutdown primary..."
+
+  # initiate_LPAR_dump.sh 
+
+  f writelog "Shutdown primary done."
+
+  exit 1
 
 done
