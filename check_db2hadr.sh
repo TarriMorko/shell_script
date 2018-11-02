@@ -166,7 +166,7 @@ while [ true ]; do
 
   # initiate_LPAR_dump.sh 
 
-  f writelog "Shutdown primary done."
+  writelog "Shutdown primary done."
 
   exit 1
 
