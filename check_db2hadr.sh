@@ -7,7 +7,7 @@ DETECT_TIME=60
 WAIT_TIME_FOR_CONNECTION_TEST=60
 LOGFILENAME="/home/db2inst1/check_db2hadr.log"
 GPFSFILE="/tmp/current_timestamp.txt"
-GPFS_TIMEOUT=60
+GPFS_TIMEOUT=90
 
 writelog() {
   #######################################
