@@ -124,6 +124,10 @@ main() {
   sed "s/<//" compare_account_output >${arrange_temp}
   sed "s/>//" ${arrange_temp} >compare_account_output
   cat compare_account_output
+  mv compare_account_output compare_account_output.txt
+  sed "s/$/`echo -e \\\r`/" compare_account_output.txt > compare_account_output.txt
+
+  
   rm -f *_temp
 
 }
