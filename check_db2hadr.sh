@@ -35,14 +35,14 @@ connect_test() {
   # Create a connection test to primary database.
   #######################################  
   touch CONNECTIONRESULT
-  db2 connect to REMOTE_S user db2inst1 using 2iliaxZ 1>>$LOGFILENAME 2>&1
+  db2 connect to REMOTE_S user db2inst1 using PASSWORD 1>>$LOGFILENAME 2>&1
   if [[ $? -eq 0 ]]; then
     echo "True" >CONNECTIONRESULT
+    db2 -x "select current timestamp from sysibm.sysdummy1" >timestamp.txt
+    writelog "Get timestamp: " $(cat timestamp.txt)
   else
     echo "False" >CONNECTIONRESULT
   fi
-  db2 -x "select current timestamp from sysibm.sysdummy1" >timestamp.txt
-  writelog "Get timestamp: " $(cat timestamp.txt)
 
   # sleep 10 # simulate hang # DEBUG
 }
@@ -99,7 +99,7 @@ is_primary_db_able_to_connect() {
   connect_test_PID=$!
   writelog "wait $WAIT_TIME_FOR_CONNECTION_TEST sec."
   sleep $WAIT_TIME_FOR_CONNECTION_TEST
-  ps -p $connect_test_PID # >/dev/null 2>&1
+  ps -p $connect_test_PID >/dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 -o "$(cat CONNECTIONRESULT)" == "False" ]; then
     # connection hang
@@ -121,11 +121,11 @@ is_GPFS_can_read() {
   #######################################     
   writelog "check GPFS file."
 
-  standby_time=$(date +%s)
   primary_time=$(cat $GPFSFILE)
+  standby_time=$(date +%s)
 
-  writelog "standby_time: $standby_time" # DEBUG
   writelog "primary_time: $primary_time" # DEBUG
+  writelog "standby_time: $standby_time" # DEBUG
 
   timestamp_diff=$(echo $standby_time - $primary_time | bc)
 
