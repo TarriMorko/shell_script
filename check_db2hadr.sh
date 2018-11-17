@@ -130,12 +130,11 @@ is_GPFS_can_read() {
   timestamp_diff=$(echo $standby_time - $primary_time | bc)
 
   if [ $timestamp_diff -ge $GPFS_TIMEOUT ]; then
-    writelog "誤差 $timestamp_diff 秒"
-    writelog "要叫救護車了"
+    writelog "late $timestamp_diff sec."
     # do something  
     return 1
   else
-    writelog "誤差 $timestamp_diff 秒，在允許範圍內。"
+    writelog "late $timestamp_diff sec, but less then $GPFS_TIMEOUT sec."
     return 0
   fi
 
@@ -154,13 +153,13 @@ while [ true ]; do
 
   sleep $DETECT_TIME
 
-  is_hadr_role_standby || exit # 不是 standby 就退出
+  is_hadr_role_standby || exit
 
-  is_hadr_state_peer && continue # peer 就繼續 loop,  不是 peer 需要往下檢查
+  is_hadr_state_peer && continue
 
-  is_primary_db_able_to_connect && continue # 可連線到 primary 就繼續 loop，不能連就往下檢查
+  is_primary_db_able_to_connect && continue
 
-  is_GPFS_can_read && continue # 可讀取到 GPFS 檔案且時間誤差在 $GPFS_TIMEOUT 秒之內就繼續 loop, 不能就往下
+  is_GPFS_can_read && continue
 
   writelog "Shutdown primary..."
 
