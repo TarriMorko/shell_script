@@ -10,7 +10,8 @@
             // "command": "scp check_permission_and_md5.sh spos2@192.168.142.141:/src/mwadmin/check_permission_and_md5",
             // "command": "scp check_db2hadr.sh db2inst1@192.168.152.220:/home/db2inst1",
             // "command": "scp compare_account.sh root@192.168.142.111:/src ; cp compare_account.sh /mnt/c/temp/aom/compare_account.sh.txt",
-            "command": "scp db2_health_check.sh inst411@192.168.142.111:/tmp/IBM_IMA; scp db2_health_check.sql inst411@192.168.142.111:/tmp/IBM_IMA;scp db2_health_get_diaglog.sh inst411@192.168.142.111:/tmp/IBM_IMA"
+            // "command": "scp db2_health_check.sh inst411@192.168.142.111:/tmp/IBM_IMA; scp db2_health_check.sql inst411@192.168.142.111:/tmp/IBM_IMA;scp db2_health_get_diaglog.sh inst411@192.168.142.111:/tmp/IBM_IMA"
+            "command": "scp db2_security_audit.sh inst411@192.168.142.111:/home/inst411"
             // "command": "scp check_permission_and_md5.sh root@192.168.142.129:/src/mwadmin/check_permission_and_md5",
         }
     ]
