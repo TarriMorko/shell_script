@@ -1,6 +1,6 @@
 import pandas as pd
 import xlsxwriter
-workload = pd.read_csv('c:\\src\\python_study\\excel\\1.csv')
+workload = pd.read_csv('c:\\temp\\1.csv')
 
 maxlenofAlvin=0
 maxlenofJason=0
@@ -66,20 +66,102 @@ print(maxlen)
 for counter, item in enumerate(mon):
     print(counter, item)
     col = 1
-    if workload.ix[item]['負責人'] == 'Alvin':        
-        worksheet.write(counter +1 , col, workload.ix[item]['工作內容'])
+    if workload.iloc[item]['負責人'] == 'Alvin':        
+        worksheet.write(counter +1 , col, workload.iloc[item]['工作內容'])
         diff_alvin = maxlenofAlvin - (counter + 1)
         continue
-    if workload.ix[item]['負責人'] == 'Jason':        
-        worksheet.write(counter +1 + diff_alvin, col, workload.ix[item]['工作內容'])
+    if workload.iloc[item]['負責人'] == 'Jason':        
+        worksheet.write(counter +1 + diff_alvin, col, workload.iloc[item]['工作內容'])
         diff_jason = maxlen + maxlenofJason - (counter + 1 + diff_alvin)
         continue
-    if workload.ix[item]['負責人'] == 'Ken':        
-        worksheet.write(counter +1 + diff_jason + diff_alvin , col, workload.ix[item]['工作內容'])
-        diff_ken = maxlen*2 + maxlenofKen - (counter +1 + diff_jason + diff_alvin )
+    if workload.iloc[item]['負責人'] == 'Ken':        
+        worksheet.write(counter +1 + diff_jason + diff_alvin , col, workload.iloc[item]['工作內容'])
+        diff_ken = maxlen*3 - (counter +1 + diff_jason + diff_alvin )
         continue
-    if workload.ix[item]['負責人'] == 'Kevin':        
-        worksheet.write(counter +1 + diff_jason + diff_alvin +diff_ken , col, workload.ix[item]['工作內容'])    
+    if workload.iloc[item]['負責人'] == 'Kevin':        
+        worksheet.write(counter + + diff_ken + diff_alvin +diff_jason , col, workload.iloc[item]['工作內容'])    
         continue
+
+
+for counter, item in enumerate(tue):
+    print(counter, item)
+    col = 2
+    if workload.iloc[item]['負責人'] == 'Alvin':        
+        worksheet.write(counter +1 , col, workload.iloc[item]['工作內容'])
+        diff_alvin = maxlenofAlvin - (counter + 1)
+        continue
+    if workload.iloc[item]['負責人'] == 'Jason':        
+        worksheet.write(counter +1 + diff_alvin, col, workload.iloc[item]['工作內容'])
+        diff_jason = maxlen + maxlenofJason - (counter + 1 + diff_alvin)
+        continue
+    if workload.iloc[item]['負責人'] == 'Ken':        
+        worksheet.write(counter +1 + diff_jason + diff_alvin , col, workload.iloc[item]['工作內容'])
+        diff_ken = maxlen*3 - (counter +1 + diff_jason + diff_alvin )
+        continue
+    if workload.iloc[item]['負責人'] == 'Kevin':        
+        worksheet.write(counter + 1 + diff_ken + diff_alvin +diff_jason , col, workload.iloc[item]['工作內容'])    
+        continue
+
+for counter, item in enumerate(wed):
+    print(counter, item)
+    col = 3
+    if workload.iloc[item]['負責人'] == 'Alvin':        
+        worksheet.write(counter +1 , col, workload.iloc[item]['工作內容'])
+        diff_alvin = maxlenofAlvin - (counter + 1)
+        continue
+    if workload.iloc[item]['負責人'] == 'Jason':        
+        worksheet.write(counter +1 + diff_alvin, col, workload.iloc[item]['工作內容'])
+        diff_jason = maxlen + maxlenofJason - (counter + 1 + diff_alvin)
+        continue
+    if workload.iloc[item]['負責人'] == 'Ken':        
+        worksheet.write(counter +1 + diff_jason + diff_alvin , col, workload.iloc[item]['工作內容'])
+        diff_ken = maxlen*3 - (counter +1 + diff_jason + diff_alvin )
+        continue
+    if workload.iloc[item]['負責人'] == 'Kevin':        
+        worksheet.write(counter + 1 + diff_ken + diff_alvin +diff_jason , col, workload.iloc[item]['工作內容'])    
+        continue
+
+
+for counter, item in enumerate(thu):
+    print(counter, item)
+    col = 4
+    if workload.iloc[item]['負責人'] == 'Alvin':        
+        worksheet.write(counter +1 , col, workload.iloc[item]['工作內容'])
+        diff_alvin = maxlenofAlvin - (counter + 1)
+        continue
+    if workload.iloc[item]['負責人'] == 'Jason':        
+        worksheet.write(counter +1 + diff_alvin, col, workload.iloc[item]['工作內容'])
+        diff_jason = maxlen + maxlenofJason - (counter + 1 + diff_alvin)
+        continue
+    if workload.iloc[item]['負責人'] == 'Ken':        
+        worksheet.write(counter +1 + diff_jason + diff_alvin , col, workload.iloc[item]['工作內容'])
+        diff_ken = maxlen*3 - (counter +1 + diff_jason + diff_alvin )
+        continue
+    if workload.iloc[item]['負責人'] == 'Kevin':        
+        worksheet.write(counter + 1 + diff_ken + diff_alvin +diff_jason , col, workload.iloc[item]['工作內容'])    
+        continue
+
+
+for counter, item in enumerate(fri):
+    print(counter, item)
+    col = 5
+    if workload.iloc[item]['負責人'] == 'Alvin':        
+        worksheet.write(counter +1 , col, workload.iloc[item]['工作內容'])
+        diff_alvin = maxlenofAlvin - (counter + 1)
+        continue
+    if workload.iloc[item]['負責人'] == 'Jason':        
+        worksheet.write(counter +1 + diff_alvin, col, workload.iloc[item]['工作內容'])
+        diff_jason = maxlen + maxlenofJason - (counter + 1 + diff_alvin)
+        continue
+    if workload.iloc[item]['負責人'] == 'Ken':        
+        worksheet.write(counter +1 + diff_jason + diff_alvin , col, workload.iloc[item]['工作內容'])
+        diff_ken = maxlen*3 - (counter +1 + diff_jason + diff_alvin )
+        continue
+    if workload.iloc[item]['負責人'] == 'Kevin':        
+        worksheet.write(counter + 1 + diff_ken + diff_alvin +diff_jason , col, workload.iloc[item]['工作內容'])    
+        continue
+
+
+
 
 workbook.close()
