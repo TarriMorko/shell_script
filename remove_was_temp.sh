@@ -5,8 +5,8 @@
 AUDIT_LOG=/src/mwadmin/mwadmin_audit.log
 LOGFILENAME=$AUDIT_LOG
 ALLOWED_USER="root"
-HOST=`hostname`
-LOGIN=`whoami`
+HOST=$(hostname)
+LOGIN=$(whoami)
 
 writelog() {
   #######################################
@@ -26,19 +26,18 @@ writelog() {
   #_caller=$(echo $0 | cut -d'/' -f2)
   _caller=$(echo ${0##*/} | awk '{print substr($0,1,4)}')
   log_message=$@
-  echo "$(date +"%Y-%m-%d %H:%M:%S") [$_caller] ${log_message}"  | tee -a ${LOGFILENAME}
+  echo "$(date +"%Y-%m-%d %H:%M:%S") [$_caller] ${log_message}" | tee -a ${LOGFILENAME}
 }
 typeset -fx writelog
 
-
-if [ "${LOGIN}" != "${ALLOWED_USER}" ] ; then
+if [ "${LOGIN}" != "${ALLOWED_USER}" ]; then
   writelog "User ID check failed. Abort."
   exit 1
 else
   writelog "User ID check successful. Continue."
 fi
 
-ps -ef | grep wasadmin | grep java | grep -v getPMI | grep -v wily | grep -v grep > /dev/null
+ps -ef | grep wasadmin | grep java | grep -v getPMI | grep -v wily | grep -v grep >/dev/null
 if [ $? -eq 0 ]; then
   writelog "Stop all WebSphere Application Server-related Java processes before deleting WSTEMP files."
   exit 1
@@ -52,7 +51,7 @@ WAS_TEMP_DIRS="
 /tmp/3/*
 "
 
-for WAS_TEMP_DIR in $WAS_TEMP_DIRS ; do
+for WAS_TEMP_DIR in $WAS_TEMP_DIRS; do
   writelog removing "${WAS_TEMP_DIR}"
   rm -rf "${WAS_TEMP_DIR}"
 done
