@@ -44,7 +44,7 @@ if [ $? -eq 0 ]; then
 fi
 
 # MUST add * at the end of LINE !!!
-# DO NOT REMOTE WAS_TEMP directory itself !!!
+# DO NOT REMOVE WAS_TEMP directory itself !!!
 WAS_TEMP_DIRS="
 /tmp/1/*
 /tmp/2/*
