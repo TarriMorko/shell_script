@@ -8,7 +8,7 @@ instance_list=$1
 
 if [ $# -lt 2 ]; then
   echo "請輸入 instance 與 db 名稱、output directory 作為參數"
-  echo "ex: ./ahc_db2.sh db2inst1 sample /home/db2inst1/ahc"
+  echo "ex: ./ahc_db2.sh inst411 sample /home/inst411/ahc"
   echo
   exit
 else
@@ -72,6 +72,13 @@ chmod 777 $TMP_TAB
 db2 -tf $TMP_TAB > $(hostname)_${instance}_${database}_tablesize.out
 echo $? # TODO (0 or 4)	
 
+# List indexes size
+echo "connect to ${database};
+SELECT substr(TABSCHEMA,1,20) as TAB_SCHEMA, substr(TABNAME,1,24) AS TAB_NAME,substr(INDSCHEMA,1,20) as IND_SCHEMA,substr(INDNAME,1,24) AS INDEX_NAME, iid,index_partitioning, datapartitionid, index_object_l_size, index_object_p_size, index_requires_rebuild, large_rids FROM TABLE(sysproc.admin_get_index_info('I','','')) AS t;
+" > $TMP_TAB
+chmod 777 $TMP_TAB
+db2 -tf $TMP_TAB > $(hostname)_${instance}_${database}_index_size.out
+echo $? # TODO (0 or 4)	
 
 # List indexes which last used more than 60 days
 echo "connect to ${database};
@@ -87,7 +94,7 @@ echo $? # TODO (0 or 4)
 
 # List tables which does no run runstats in 14 days
 echo "connect to ${database};
-select substr(TABSCHEMA,1,20) as TAB_SCHEMA, substr(TABNAME,1,24),STATS_TIME from syscat.tables where STATS_TIME < current timestamp -14 days ;
+select substr(TABSCHEMA,1,20) as TAB_SCHEMA, substr(TABNAME,1,24) AS TAB_NAME, STATS_TIME from syscat.tables where STATS_TIME < current timestamp -14 days ;
 " > $TMP_TAB
 chmod 777 $TMP_TAB
 db2 -tf $TMP_TAB > $(hostname)_${instance}_${database}_tables_need_runstats.out
