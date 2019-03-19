@@ -68,8 +68,9 @@ cat <<rule_2.1
 檢查結果：
 rule_2.1
 
-lsuser db2as
-cat /etc/group | grep db2asgrp
+lsuser -f db2as
+lsgroup -f db2asgrp
+# cat /etc/group | grep db2asgrp
 
 cat <<rule_2.2
 
