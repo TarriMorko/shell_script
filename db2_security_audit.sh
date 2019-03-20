@@ -363,58 +363,58 @@ for database in ${DATABASES}; do
         INSTANCE_OWNER=$(db2 -x "VALUES SYSPROC.AUTH_GET_INSTANCE_AUTHID()")
         echo ""
         echo "Alterin (schema) (1) 僅能由資料庫管理人員帳號持有 或 限制具BINDADD執行者擁有"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='ALTERIN' and OBJECTTYPE='SCHEMA'"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='ALTERIN' and OBJECTTYPE='SCHEMA'"
 
         echo ""
         echo "Index (tables, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='INDEX' and (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME')"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='INDEX' and (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME')"
 
         echo ""
         echo "Createin (schema) (1) 僅能由資料庫管理人員帳號持有 或 限制具BINDADD執行者擁有"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='CREATEIN' and OBJECTTYPE='SCHEMA'"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='CREATEIN' and OBJECTTYPE='SCHEMA'"
 
         echo ""
         echo "References (tables, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='REFERENCE'and (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME')"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='REFERENCE'and (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME')"
 
         echo ""
         echo "Dropin (schema)- Passthru (server) (1) 僅能由資料庫管理人員帳號持有"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='DROPIN' and OBJECTTYPE='SCHEMA'"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='DROPIN' and OBJECTTYPE='SCHEMA'"
 
         #   echo ""
         #   echo "All (tables, views, nicknames) 僅能由資料庫管理人員帳號持有"
 
         echo ""
         echo "Usage (sequences)  (1) 僅能由資料庫管理人員帳號持有。"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='USAGE' and OBJECTTYPE='SEQUENCE'"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='USAGE' and OBJECTTYPE='SEQUENCE'"
 
         echo ""
         echo "Alter (tables, views, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='ALTER' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME' or OBJECTTYPE='VIEW')"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='ALTER' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME' or OBJECTTYPE='VIEW')"
 
         echo ""
         echo "Control (sequences, nicknames, packages, procedures, functions, methods, tables, views, tablespaces) (或限制具Createin (schema)執行者擁有control packages權限) (1) 僅能由資料庫管理人員帳號持有。"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='CONTROL' AND (OBJECTTYPE='SEQUENCE'or OBJECTTYPE='NICKNAME'or OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE'or OBJECTTYPE='FUNCTION'or OBJECTTYPE='METHOD'or OBJECTTYPE='TABLE'or OBJECTTYPE='VIEW'or OBJECTTYPE='TABLESPACE')"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='CONTROL' AND (OBJECTTYPE='SEQUENCE'or OBJECTTYPE='NICKNAME'or OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE'or OBJECTTYPE='FUNCTION'or OBJECTTYPE='METHOD'or OBJECTTYPE='TABLE'or OBJECTTYPE='VIEW'or OBJECTTYPE='TABLESPACE')"
 
         echo ""
         echo "Delete (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='DELETE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='DELETE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
 
         echo ""
         echo "Insert (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='INSERT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='INSERT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
 
         echo ""
         echo "Update (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='UPDATE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='UPDATE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
 
         echo ""
         echo "Select (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='SELECT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='SELECT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
 
         echo ""
         echo "Execute (packages, procedures, functions, methods) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-        db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='EXECUTE' AND (OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE' or OBJECTTYPE='VIEW' or OBJECTTYPE='FUNCTION' or OBJECTTYPE='METHOD')"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='EXECUTE' AND (OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE' or OBJECTTYPE='VIEW' or OBJECTTYPE='FUNCTION' or OBJECTTYPE='METHOD')"
 
         #   db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(10)) as Grantee, GRANTEETYPE as GT, Cast(schemaname as char(10)) as SCHEMANAME, ALTERINAUTH as ALTERIN, CREATEINAUTH as CREATEIN, DROPINAUTH as DROPIN from SYSCAT.SCHEMAAUTH"
         #   db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(tabschema as char(10)) as SCHEMA, Cast(tabname as char(45)) as TABLENAME, CONTROLAUTH as CTL, SELECTAUTH as SEL, INSERTAUTH as INS, UPDATEAUTH as UPD,  DELETEAUTH as DEL, ALTERAUTH as ALT, INDEXAUTH as IDX, REFAUTH as REF  from syscat.tabauth  where (indexauth in ('Y','G') or refauth in ('Y','G') or controlauth in ('Y','G') or alterauth in ('Y','G')) and grantee<>'$INSTNAME'"
