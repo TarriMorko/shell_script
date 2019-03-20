@@ -7,6 +7,7 @@
             "label": "SSH somethin",
             "type": "shell",
             "command": "scp db2_security_audit.sh inst411@192.168.142.111:/home/inst411",
+            // "command": "scp ahc_db2.sh inst411@192.168.142.111:/home/inst411",
             "problemMatcher": []
         }
     ]
