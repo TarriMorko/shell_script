@@ -5,38 +5,40 @@
 AP_USERID="MAX"
 
 if [ $# -eq 0 ]; then
-  echo "請輸入 instance 名稱作為參數"
-  echo "ex: ./db2_security_audit.sh db2inst1"
-  echo
-  exit
+        echo "請輸入 instance 名稱作為參數"
+        echo "ex: ./db2_security_audit.sh db2inst1"
+        echo
+        exit
 else
-  export LANG=en_US
-  INSTNAME=$1
+        export LANG=en_US
+        INSTNAME=$1
 fi
 
 if [ -e /home/$INSTNAME/sqllib/db2profile ]; then
-  . /home/$INSTNAME/sqllib/db2profile
-  WORKING_DIR="/home/$INSTNAME"
-  cd $WORKING_DIR
+        . /home/$INSTNAME/sqllib/db2profile
+        WORKING_DIR="/home/$INSTNAME"
+        cd $WORKING_DIR
 else
-  echo "Can not source db2profile. Exit."
-  exit
+        echo "Can not source db2profile. Exit."
+        exit
 fi
 
 DATABASES=$(
-  db2 list db directory | awk '/alias/{a=$NF}/Indirec/{print a}' | sed 's/ //g'
+        db2 list db directory | awk '/alias/{a=$NF}/Indirec/{print a}' | sed 's/ //g'
 )
 
+
+
 query_all_db() {
-  for database in ${DATABASES}; do
-    echo "Database: $database"
-    AUTH_IDs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='U'")
-    AUTH_GROUPs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='G'")
-    AUTH_ROLEs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='R'")
-    db2 connect to $database >/dev/null 2>&1
-    db2 -v $1
-    db2 terminate >/dev/null 2>&1
-  done
+        for database in ${DATABASES}; do
+                echo "Database: $database"
+                AUTH_IDs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='U'")
+                AUTH_GROUPs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='G'")
+                AUTH_ROLEs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='R'")
+                db2 connect to $database >/dev/null 2>&1
+                db2 -v $1
+                db2 terminate >/dev/null 2>&1
+        done
 }
 
 echo ''
@@ -125,6 +127,7 @@ cat <<rule_2.5
 rule_2.5
 
 db2 get dbm cfg | grep -y group
+echo ""
 cat /etc/group | grep db2iadm1
 
 cat <<rule_2.6
@@ -153,18 +156,18 @@ cat <<rule_3.1
 rule_3.1
 
 for database in ${DATABASES}; do
-  echo "Database: $database"
-  db2 connect to $database >/dev/null 2>&1
-  AUTH_IDs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='U'")
-  for AUTH_ID in $AUTH_IDs; do
-    echo "使用者 $AUTH_ID 的 DBADM 權限列表，以下任一欄為 Y 表示該使用者 $AUTH_ID 具有 DBADM 權限。"
-    echo "AUTHORITY                D_USER D_GROUP D_PUBLIC ROLE_USER ROLE_GROUP ROLE_PUBLIC D_ROLE"
-    db2 -x "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
-            FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('$AUTH_ID', 'U') ) AS T
-            where AUTHORITY='DBADM' "
-    echo ""
-  done
-  db2 terminate >/dev/null 2>&1
+        echo "Database: $database"
+        db2 connect to $database >/dev/null 2>&1
+        AUTH_IDs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='U'")
+        for AUTH_ID in $AUTH_IDs; do
+                echo "使用者 $AUTH_ID 的 DBADM 權限列表，以下任一欄為 Y 表示該使用者 $AUTH_ID 具有 DBADM 權限。"
+                echo "AUTHORITY                D_USER D_GROUP D_PUBLIC ROLE_USER ROLE_GROUP ROLE_PUBLIC D_ROLE"
+                db2 -x "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE 
+            FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('$AUTH_ID', 'U') ) AS T 
+            where AUTHORITY='DBADM' and (D_USER='Y' or D_GROUP='Y' or D_PUBLIC='Y' or ROLE_USER='Y' or ROLE_GROUP='Y' or ROLE_PUBLIC='Y' or D_ROLE='Y')"
+                echo ""
+        done
+        db2 terminate >/dev/null 2>&1
 done
 
 cat <<rule_3.2
@@ -179,15 +182,15 @@ cat <<rule_3.2
 rule_3.2
 
 for database in ${DATABASES}; do
-  echo "Database: $database"
-  db2 connect to $database >/dev/null 2>&1
+        echo "Database: $database"
+        db2 connect to $database >/dev/null 2>&1
 
-  echo "使用者 $AP_USERID 的權限列表："
-  echo "AUTHORITY                D_USER D_GROUP D_PUBLIC ROLE_USER ROLE_GROUP ROLE_PUBLIC D_ROLE"
-  db2 -x "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
+        echo "使用者 $AP_USERID 的權限列表："
+        echo "AUTHORITY                D_USER D_GROUP D_PUBLIC ROLE_USER ROLE_GROUP ROLE_PUBLIC D_ROLE"
+        db2 -x "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
           FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('$AP_USERID', 'U') ) AS T"
-  echo ""
-  db2 terminate >/dev/null 2>&1
+        echo ""
+        db2 terminate >/dev/null 2>&1
 done
 
 cat <<rule_3.3
@@ -196,22 +199,25 @@ cat <<rule_3.3
 編號 3.3
 檢查目的：PUBLIC角色
 檢查方式：檢視資料庫/「使用者與群組物件」中， PUBLIC權限
-        撤銷CONNECT、CREATETAB、BINDADD、IMPLICIT_SCHEMA下權限
+        撤銷 CONNECT、CREATETAB、BINDADD、IMPLICIT_SCHEMA下權限
 
 檢查結果：
 rule_3.3
 
 for database in ${DATABASES}; do
-  echo ""
-  echo "Database: $database"
-  db2 connect to $database >/dev/null 2>&1
+        echo ""
+        echo "Database: $database"
+        db2 connect to $database >/dev/null 2>&1
 
-  echo "PUBLIC 群組的權限列表。"
-  db2 "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
-          FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('PUBLIC', 'G') ) AS T"
-  echo ""
+        echo "PUBLIC 群組的權限列表。"
+        echo "以下任一欄為 Y 表示 PUBLIC 群組需修正權限。"
+        db2 "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
+          FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('PUBLIC', 'G') ) AS T
+           where (AUTHORITY='CONNECT' or AUTHORITY='CREATETAB' or AUTHORITY='BINDADD' or AUTHORITY='IMPLICIT_SCHEMA') and (D_USER='Y' or D_GROUP='Y' or D_PUBLIC='Y' or ROLE_USER='Y' or ROLE_GROUP='Y' or ROLE_PUBLIC='Y' or D_ROLE='Y')
+          "
+        echo ""
 
-  db2 terminate >/dev/null 2>&1
+        db2 terminate >/dev/null 2>&1
 done
 
 cat <<rule_3.4
@@ -226,23 +232,21 @@ cat <<rule_3.4
 rule_3.4
 
 for database in ${DATABASES}; do
-  echo "Database: $database"
-  db2 connect to $database >/dev/null 2>&1
-  AUTH_IDs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='U'")
-  for AUTH_ID in $AUTH_IDs; do
-    echo "使用者 $AUTH_ID 的 CREATE_NOT_FENCED 權限列表，以下任一欄為 Y 表示使用者 $AUTH_ID 具有 CREATE_NOT_FENCED 權限。"
-    echo "AUTHORITY                D_USER D_GROUP D_PUBLIC ROLE_USER ROLE_GROUP ROLE_PUBLIC D_ROLE"
-    db2 -x "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
+        echo "Database: $database"
+        db2 connect to $database >/dev/null 2>&1
+        AUTH_IDs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='U'")
+        for AUTH_ID in $AUTH_IDs; do
+                echo "使用者 $AUTH_ID 的 CREATE_NOT_FENCED 權限列表，以下任一欄為 Y 表示使用者 $AUTH_ID 具有 CREATE_NOT_FENCED 權限。"
+                echo "AUTHORITY                D_USER D_GROUP D_PUBLIC ROLE_USER ROLE_GROUP ROLE_PUBLIC D_ROLE"
+                db2 -x "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
             FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('$AUTH_ID', 'U') ) AS T
-            where AUTHORITY='CREATE_NOT_FENCED_ROUTINE' "
-    echo ""
-  done
-  db2 terminate >/dev/null 2>&1
+            where AUTHORITY='CREATE_NOT_FENCED_ROUTINE' and (D_USER='Y' or D_GROUP='Y' or D_PUBLIC='Y' or ROLE_USER='Y' or ROLE_GROUP='Y' or ROLE_PUBLIC='Y' or D_ROLE='Y')"
+                echo ""
+        done
+        db2 terminate >/dev/null 2>&1
 done
 
 cat <<rule_3.5
-
-
 編號 3.5
 檢查目的：應限制Tablespace內PUBLIC持有之物件權限
 檢查方式：檢視各Tablespace設定
@@ -252,17 +256,16 @@ cat <<rule_3.5
 rule_3.5
 
 for database in ${DATABASES}; do
-  echo "Database: $database"
-  db2 connect to $database >/dev/null 2>&1
-  echo "以下列出 PUBLIC 群組具有的的 CREATEIN 或 USE 權限列表，以及其對應的資料庫物件。"
-  echo "USE     : 可以在此 tablespace 中建立 table"
-  echo "CREATEIN: 可以在此 schema 中建立物件"
-  echo ""
-  db2 "SELECT substr(AUTHID,1,12) AS AUTHID ,AUTHIDTYPE,PRIVILEGE,substr(OBJECTNAME,1,24) AS OBJ_NAME, substr(OBJECTSCHEMA,1,8) AS OBJ_SCHEMA,substr(OBJECTTYPE,1,15) AS OBJ_TYPE from  SYSIBMADM.PRIVILEGES where AUTHID in 'PUBLIC' and ( PRIVILEGE='USE' or PRIVILEGE='CREATEIN' ) "
-  echo ""
-  db2 terminate >/dev/null 2>&1
+        echo "Database: $database"
+        db2 connect to $database >/dev/null 2>&1
+        echo "以下列出 PUBLIC 群組具有的的 CREATEIN 或 USE 權限列表，以及其對應的資料庫物件。"
+        echo "USE     : 可以在此 tablespace 中建立 table"
+        echo "CREATEIN: 可以在此 schema 中建立物件"
+        echo ""
+        db2 "SELECT substr(AUTHID,1,12) AS AUTHID ,AUTHIDTYPE,PRIVILEGE,substr(OBJECTNAME,1,24) AS OBJ_NAME, substr(OBJECTSCHEMA,1,8) AS OBJ_SCHEMA,substr(OBJECTTYPE,1,15) AS OBJ_TYPE from  SYSIBMADM.PRIVILEGES where AUTHID in 'PUBLIC' and ( PRIVILEGE='USE' or PRIVILEGE='CREATEIN' ) "
+        echo ""
+        db2 terminate >/dev/null 2>&1
 done
-
 
 cat <<rule_3.6
 
@@ -284,52 +287,44 @@ cat <<rule_3.6
 
 rule_3.6
 
-
 for database in ${DATABASES}; do
         echo "Database: $database"
         db2 connect to $database >/dev/null 2>&1
+        
         echo ""
         echo "以下列出 PUBLIC 群組在 SYSCAT.DBAUTH 表中的權限，若有 Y 者表示應移除。"
         echo "DB: $database SYSCAT.DBAUTH"
         db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as CO , CREATETABAUTH as CT, BINDADDAUTH as BA, NOFENCEAUTH as NF, DBADMAUTH as DBADM, IMPLSCHEMAAUTH as IS, LOADAUTH as LO, EXTERNALROUTINEAUTH as ER, QUIESCECONNECTAUTH as QC from syscat.dbauth where Grantee='PUBLIC'"
-
 
         echo ""
         echo "以下列出 PUBLIC 群組在 SYSCAT.tabauth 表中的權限，若有 Y 者表示應移除。"
         echo "DB: $database SYSCAT.tabauth"
         db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(tabschema as char(10)) as SCHEMA, Cast(tabname as char(45)) as TABLENAME, CONTROLAUTH as CTL, SELECTAUTH as SEL, INSERTAUTH as INS, UPDATEAUTH as UPD, DELETEAUTH as DEL, ALTERAUTH as ALT, INDEXAUTH as IDX, REFAUTH as REF from syscat.tabauth where grantee='PUBLIC' AND (CONTROLAUTH='Y' or SELECTAUTH='Y' or INSERTAUTH='Y' or UPDATEAUTH='Y' or DELETEAUTH='Y' or ALTERAUTH='Y' or ALTERAUTH='Y' or INDEXAUTH='Y' or REFAUTH='Y')"
 
-
         echo ""
         echo "以下列出 PUBLIC 群組在 SYSCAT.packageauth 表中的權限，若有 Y 者表示應移除。"
         echo "DB: $database SYSCAT.packageauth"
         db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(pkgschema as char(10)) as SCHEMA, Cast(pkgname as char(24)) as PKGNAME, CONTROLAUTH as CTL, BINDAUTH as BA, EXECUTEAUTH as EX from syscat.packageauth where grantee='PUBLIC'"
-
-
 
         echo ""
         echo "以下列出 PUBLIC 群組在 SYSCAT.indexauth 表中的權限，若有 Y 者表示應移除。"
         echo "DB: $database SYSCAT.indexauth"
         db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(indschema as char(10)) as SCHEMA, Cast(indname as char(40)) as INDNAME, CONTROLAUTH as CTL from syscat.indexauth where grantee='PUBLIC'"
 
-
         echo ""
         echo "以下列出 PUBLIC 群組在 SYSCAT.colauth 表中的權限，若有 Y 者表示應移除。"
         echo "DB: $database SYSCAT.colauth"
         db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(tabschema as char(10)) as SCHEMA, Cast(tabname as char(40)) as TABLENAME, Cast(colname as char(20)) as COLNAME, COLNO, PRIVTYPE, GRANTABLE from syscat.colauth where grantee='PUBLIC'"
-
 
         echo ""
         echo "以下列出 PUBLIC 群組在 SYSCAT.passthruauth 表中的權限，若有 Y 者表示應移除。"
         echo "DB: $database SYSCAT.passthruauth"
         db2 -v "select count(*) from syscat.passthruauth"
 
-
         echo ""
-        echo "以下列出 PUBLIC 群組在 SYSCAT.SCHEMAAUTH 表中的權限，若有 Y 者表示應移除。"        
+        echo "以下列出 PUBLIC 群組在 SYSCAT.SCHEMAAUTH 表中的權限，若有 Y 者表示應移除。"
         echo "DB: $database SYSCAT.SCHEMAAUTH"
         db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(10)) as Grantee, GRANTEETYPE as GT, Cast(schemaname as char(10)) as SCHEMANAME, ALTERINAUTH as ALTERIN, CREATEINAUTH as CREATEIN, DROPINAUTH as DROPIN from SYSCAT.SCHEMAAUTH where GRANTEE='PUBLIC'"
-
 
         db2 terminate >/dev/null 2>&1
 done
@@ -362,76 +357,74 @@ cat <<rule_3.7
 rule_3.7
 
 
-
 for database in ${DATABASES}; do
-  echo "Database: $database"
-  db2 connect to $database >/dev/null 2>&1
-  echo ""
-  echo "Alterin (schema) (1) 僅能由資料庫管理人員帳號持有 或 限制具BINDADD執行者擁有"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='ALTERIN' and OBJECTTYPE='SCHEMA'"
+        echo "Database: $database"
+        db2 connect to $database >/dev/null 2>&1
+        INSTANCE_OWNER=$(db2 -x "VALUES SYSPROC.AUTH_GET_INSTANCE_AUTHID()")
+        echo ""
+        echo "Alterin (schema) (1) 僅能由資料庫管理人員帳號持有 或 限制具BINDADD執行者擁有"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='ALTERIN' and OBJECTTYPE='SCHEMA'"
 
-  echo ""
-  echo "Index (tables, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='INDEX' and (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME')"
+        echo ""
+        echo "Index (tables, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='INDEX' and (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME')"
 
-  echo ""
-  echo "Createin (schema) (1) 僅能由資料庫管理人員帳號持有 或 限制具BINDADD執行者擁有"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='CREATEIN' and OBJECTTYPE='SCHEMA'"
+        echo ""
+        echo "Createin (schema) (1) 僅能由資料庫管理人員帳號持有 或 限制具BINDADD執行者擁有"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='CREATEIN' and OBJECTTYPE='SCHEMA'"
 
-  echo ""
-  echo "References (tables, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='REFERENCE'and (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME')"
+        echo ""
+        echo "References (tables, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='REFERENCE'and (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME')"
 
-  echo ""
-  echo "Dropin (schema)- Passthru (server) (1) 僅能由資料庫管理人員帳號持有"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='DROPIN' and OBJECTTYPE='SCHEMA'"
+        echo ""
+        echo "Dropin (schema)- Passthru (server) (1) 僅能由資料庫管理人員帳號持有"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='DROPIN' and OBJECTTYPE='SCHEMA'"
 
-#   echo ""
-#   echo "All (tables, views, nicknames) 僅能由資料庫管理人員帳號持有"
+        #   echo ""
+        #   echo "All (tables, views, nicknames) 僅能由資料庫管理人員帳號持有"
 
-  echo ""
-  echo "Usage (sequences)  (1) 僅能由資料庫管理人員帳號持有。"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='USAGE' and OBJECTTYPE='SEQUENCE'"
+        echo ""
+        echo "Usage (sequences)  (1) 僅能由資料庫管理人員帳號持有。"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='USAGE' and OBJECTTYPE='SEQUENCE'"
 
-  echo ""
-  echo "Alter (tables, views, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='ALTER' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME' or OBJECTTYPE='VIEW')"
+        echo ""
+        echo "Alter (tables, views, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='ALTER' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME' or OBJECTTYPE='VIEW')"
 
-  echo ""
-  echo "Control (sequences, nicknames, packages, procedures, functions, methods, tables, views, tablespaces) (或限制具Createin (schema)執行者擁有control packages權限) (1) 僅能由資料庫管理人員帳號持有。"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='CONTROL' AND (OBJECTTYPE='SEQUENCE'or OBJECTTYPE='NICKNAME'or OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE'or OBJECTTYPE='FUNCTION'or OBJECTTYPE='METHOD'or OBJECTTYPE='TABLE'or OBJECTTYPE='VIEW'or OBJECTTYPE='TABLESPACE')"
+        echo ""
+        echo "Control (sequences, nicknames, packages, procedures, functions, methods, tables, views, tablespaces) (或限制具Createin (schema)執行者擁有control packages權限) (1) 僅能由資料庫管理人員帳號持有。"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='CONTROL' AND (OBJECTTYPE='SEQUENCE'or OBJECTTYPE='NICKNAME'or OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE'or OBJECTTYPE='FUNCTION'or OBJECTTYPE='METHOD'or OBJECTTYPE='TABLE'or OBJECTTYPE='VIEW'or OBJECTTYPE='TABLESPACE')"
 
-  echo ""
-  echo "Delete (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='DELETE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
+        echo ""
+        echo "Delete (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='DELETE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
 
-  echo ""
-  echo "Insert (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='INSERT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
+        echo ""
+        echo "Insert (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='INSERT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
 
-  echo ""
-  echo "Update (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='UPDATE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
+        echo ""
+        echo "Update (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='UPDATE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
 
-  echo ""
-  echo "Select (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='SELECT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
+        echo ""
+        echo "Select (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='SELECT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW')"
 
-  echo ""
-  echo "Execute (packages, procedures, functions, methods) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-  db2 "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where PRIVILEGE='EXECUTE' AND (OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE' or OBJECTTYPE='VIEW' or OBJECTTYPE='FUNCTION' or OBJECTTYPE='METHOD')"
+        echo ""
+        echo "Execute (packages, procedures, functions, methods) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
+        db2 -x "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTANCE_OWNER' AND PRIVILEGE='EXECUTE' AND (OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE' or OBJECTTYPE='VIEW' or OBJECTTYPE='FUNCTION' or OBJECTTYPE='METHOD')"
 
-
-#   db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(10)) as Grantee, GRANTEETYPE as GT, Cast(schemaname as char(10)) as SCHEMANAME, ALTERINAUTH as ALTERIN, CREATEINAUTH as CREATEIN, DROPINAUTH as DROPIN from SYSCAT.SCHEMAAUTH"
-#   db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(tabschema as char(10)) as SCHEMA, Cast(tabname as char(45)) as TABLENAME, CONTROLAUTH as CTL, SELECTAUTH as SEL, INSERTAUTH as INS, UPDATEAUTH as UPD,  DELETEAUTH as DEL, ALTERAUTH as ALT, INDEXAUTH as IDX, REFAUTH as REF  from syscat.tabauth  where (indexauth in ('Y','G') or refauth in ('Y','G') or controlauth in ('Y','G') or alterauth in ('Y','G')) and grantee<>'$INSTNAME'"
-#   db2 -v "select count(*) from syscat.nicknames"
-#   db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(pkgschema as char(10)) as SCHEMA, Cast(pkgname as char(24)) as PKGNAME, CONTROLAUTH as CTL, BINDAUTH as BA, EXECUTEAUTH as EX from syscat.packageauth where (controlauth in ('Y','G') or bindauth in ('Y','G') or executeauth in ('Y','G')) and grantee<>'$INSTNAME' and pkgschema<>'NULLID'"
-  echo ""
-  db2 terminate >/dev/null 2>&1
+        #   db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(10)) as Grantee, GRANTEETYPE as GT, Cast(schemaname as char(10)) as SCHEMANAME, ALTERINAUTH as ALTERIN, CREATEINAUTH as CREATEIN, DROPINAUTH as DROPIN from SYSCAT.SCHEMAAUTH"
+        #   db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(tabschema as char(10)) as SCHEMA, Cast(tabname as char(45)) as TABLENAME, CONTROLAUTH as CTL, SELECTAUTH as SEL, INSERTAUTH as INS, UPDATEAUTH as UPD,  DELETEAUTH as DEL, ALTERAUTH as ALT, INDEXAUTH as IDX, REFAUTH as REF  from syscat.tabauth  where (indexauth in ('Y','G') or refauth in ('Y','G') or controlauth in ('Y','G') or alterauth in ('Y','G')) and grantee<>'$INSTNAME'"
+        #   db2 -v "select count(*) from syscat.nicknames"
+        #   db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(pkgschema as char(10)) as SCHEMA, Cast(pkgname as char(24)) as PKGNAME, CONTROLAUTH as CTL, BINDAUTH as BA, EXECUTEAUTH as EX from syscat.packageauth where (controlauth in ('Y','G') or bindauth in ('Y','G') or executeauth in ('Y','G')) and grantee<>'$INSTNAME' and pkgschema<>'NULLID'"
+        echo ""
+        db2 terminate >/dev/null 2>&1
 done
 
-
-
+exit
 
 cat <<rule_3.8
 
@@ -448,7 +441,6 @@ rule_3.8
 echo ''
 echo '4.稽核軌跡（重要系統資料庫適用）======================================='
 
-
 cat <<rule_4.1
 
 
@@ -462,8 +454,6 @@ cat <<rule_4.1
 rule_4.1
 
 db2audit describe
-
-
 
 cat <<rule_4.2
 
@@ -490,7 +480,6 @@ cat <<rule_4.3
 rule_4.3
 db2audit describe
 
-
 cat <<rule_4.4
 
 
@@ -504,8 +493,6 @@ cat <<rule_4.4
 rule_4.4
 
 db2audit describe
-
-
 
 echo '5.參數設定 ============================================================'
 
@@ -535,8 +522,6 @@ rule_5.2
 
 db2 get dbm cfg | grep '(DISCOVER)'
 
-
-
 cat <<rule_5.3
 
 
@@ -549,8 +534,6 @@ cat <<rule_5.3
 rule_5.3
 
 db2 get dbm cfg | grep '(DISCOVER_INST)'
-
-
 
 cat <<rule_5.4
 
@@ -613,14 +596,13 @@ cat <<rule_5.8
 rule_5.8
 
 for database in ${DATABASES}; do
-  echo "Database: $database"
-  db2 connect to $database >/dev/null 2>&1
-  echo ""
-  db2 get db cfg | grep -i '(LOGARCHMETH1)'
-  echo ""
-  db2 terminate >/dev/null 2>&1
+        echo "Database: $database"
+        db2 connect to $database >/dev/null 2>&1
+        echo ""
+        db2 get db cfg | grep -i '(LOGARCHMETH1)'
+        echo ""
+        db2 terminate >/dev/null 2>&1
 done
-
 
 cat <<rule_5.9
 
@@ -634,12 +616,12 @@ cat <<rule_5.9
 rule_5.9
 
 for database in ${DATABASES}; do
-  echo "Database: $database"
-  db2 connect to $database >/dev/null 2>&1
-  echo ""
-  db2 get db cfg | grep -i '(DISCOVER_DB)'
-  echo ""
-  db2 terminate >/dev/null 2>&1
+        echo "Database: $database"
+        db2 connect to $database >/dev/null 2>&1
+        echo ""
+        db2 get db cfg | grep -i '(DISCOVER_DB)'
+        echo ""
+        db2 terminate >/dev/null 2>&1
 done
 
 cat <<rule_5.10
