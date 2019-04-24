@@ -29,4 +29,5 @@ for database in ${DATABASES}; do
   cat ${database}_reorgchk.out | grep '*' -B 1 | grep "Index:" | awk '{print $NF}' >>${database}_index_need_reorg.txt
   cat ${database}_reorgchk.out | grep '*' -B 1 | grep "Table:" | awk '{print $NF}' >>${database}_table_need_reorg.txt
   db2 terminate >/dev/null 2>&1
+  rm ${database}_reorgchk.out
 done
