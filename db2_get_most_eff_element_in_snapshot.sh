@@ -34,7 +34,7 @@ avg_transaction_rows_read=$( echo "scale=3;($Rows_read) / ($Commit_statements_at
 echo "avg_transaction_rows_read="$avg_transaction_rows_read
 
 
-echo "hash_join_overflows="$(grep -m 1 "Number of hash join overflows" ${SNAPSHOT}  | awk '{print $NF}')
+# echo "hash_join_overflows="$(grep -m 1 "Number of hash join overflows" ${SNAPSHOT}  | awk '{print $NF}')
 
 
 Rows_selected=$(grep -m 1 "Rows selected" ${SNAPSHOT} | awk '{print $NF}')
@@ -48,19 +48,24 @@ log_read_hitrate=$( echo "scale=3; (1 - ($Number_read_log_IOs / $Log_pages_read)
 echo "log_read_hitrate="$log_read_hitrate "%"
 
 
-echo "num_log_buffer_full="$(grep -m 1 "Number log buffer full" ${SNAPSHOT} | awk '{print $NF}' )
+Package_cache_lookups=$(grep -m 1 "Package cache lookups" ${SNAPSHOT} | awk '{print $NF}')
+Package_cache_inserts=$(grep -m 1 "Package cache inserts" ${SNAPSHOT} | awk '{print $NF}')
+Package_Cache_Hit_Ratio=$( echo "scale=3; (1 - ($Package_cache_inserts / $Package_cache_lookups))*100" | bc -l )
+echo "Package_Cache_Hit_Ratio="$Package_Cache_Hit_Ratio "%"
+
+# echo "num_log_buffer_full="$(grep -m 1 "Number log buffer full" ${SNAPSHOT} | awk '{print $NF}' )
 
 
-Buffer_pool_data_physical_reads=$( grep -m 1 "Buffer pool data physical reads" ${SNAPSHOT} | awk '{print $NF}')
-Buffer_pool_index_physical_reads=$( grep -m 1 "Buffer pool index physical reads" ${SNAPSHOT} | awk '{print $NF}')
-Buffer_pool_xda_physical_reads=$( grep -m 1 "Buffer pool xda physical reads" ${SNAPSHOT} | awk '{print $NF}')
-Buffer_pool_temporary_data_physical_reads=$( grep -m 1 "Buffer pool temporary data physical reads" ${SNAPSHOT} | awk '{print $NF}')
-Buffer_pool_temporary_index_physical_reads=$( grep -m 1 "Buffer pool temporary index physical reads" ${SNAPSHOT} | awk '{print $NF}')
-Buffer_pool_temporary_xda_physical_reads=$( grep -m 1 "Buffer pool temporary xda physical reads" ${SNAPSHOT} | awk '{print $NF}')
-synchronous_read_percentage=$( echo "scale=3; (100 - ((($Asynchronous_pool_data_page_reads + $Asynchronous_pool_index_page_reads +$Asynchronous_pool_xda_page_reads )*100) / ($Buffer_pool_data_physical_reads + $Buffer_pool_index_physical_reads + $Buffer_pool_xda_physical_reads +$Buffer_pool_temporary_data_physical_reads +$Buffer_pool_temporary_index_physical_reads +$Buffer_pool_temporary_xda_physical_reads )))   "| bc -l)
-echo "synchronous_read_percentage="$synchronous_read_percentage
+# Buffer_pool_data_physical_reads=$( grep -m 1 "Buffer pool data physical reads" ${SNAPSHOT} | awk '{print $NF}')
+# Buffer_pool_index_physical_reads=$( grep -m 1 "Buffer pool index physical reads" ${SNAPSHOT} | awk '{print $NF}')
+# Buffer_pool_xda_physical_reads=$( grep -m 1 "Buffer pool xda physical reads" ${SNAPSHOT} | awk '{print $NF}')
+# Buffer_pool_temporary_data_physical_reads=$( grep -m 1 "Buffer pool temporary data physical reads" ${SNAPSHOT} | awk '{print $NF}')
+# Buffer_pool_temporary_index_physical_reads=$( grep -m 1 "Buffer pool temporary index physical reads" ${SNAPSHOT} | awk '{print $NF}')
+# Buffer_pool_temporary_xda_physical_reads=$( grep -m 1 "Buffer pool temporary xda physical reads" ${SNAPSHOT} | awk '{print $NF}')
+# synchronous_read_percentage=$( echo "scale=3; (100 - ((($Asynchronous_pool_data_page_reads + $Asynchronous_pool_index_page_reads +$Asynchronous_pool_xda_page_reads )*100) / ($Buffer_pool_data_physical_reads + $Buffer_pool_index_physical_reads + $Buffer_pool_xda_physical_reads +$Buffer_pool_temporary_data_physical_reads +$Buffer_pool_temporary_index_physical_reads +$Buffer_pool_temporary_xda_physical_reads )))   "| bc -l)
+# echo "synchronous_read_percentage="$synchronous_read_percentage
 
 
-echo "total_hash_loops="$(grep -m 1 "Number of hash loops" ${SNAPSHOT}  | awk '{print $NF}')
+# echo "total_hash_loops="$(grep -m 1 "Number of hash loops" ${SNAPSHOT}  | awk '{print $NF}')
 echo ""
 echo "From ${SNAPSHOT} "
