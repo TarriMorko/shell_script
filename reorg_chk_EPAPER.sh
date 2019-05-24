@@ -75,11 +75,11 @@ done
 
 db2 reorgchk current statistics on table all > $OUTPATH/$DBNM.reorgchk.tables.`today`.out
 awk 'BEGIN{a=0}/Index statistics/{a=NR}{if(a<=0)print $0}' $OUTPATH/$DBNM.reorgchk.tables.`today`.out > $OUTPATH/$DBNM.reorgchk.Tablestatistics.`today`.out
-awk '{ X[NR]=$0 } /*/{print X[(NR-1)]} ' $OUTPATH/$DBNM.reorgchk.Tablestatistics.`today`.out | grep "Table:" | awk '{print $NF}' | grep -E -v "SYSCAT|SYSIBMADM|SYSPUBLIC|SYSSTAT|SYSIBM|SYSTOOLS|NULLID|SQLJ|SYSFUN|SYSIBMINTERNAL|SYSIBMTS|SYSPROC" >$OUTPATH/${DBNM}_table_need_reorg.txt
+awk '{ X[NR]=$0 } /\*/{print X[(NR-1)]} ' $OUTPATH/$DBNM.reorgchk.Tablestatistics.`today`.out | grep "Table:" | awk '{print $NF}' | grep -E -v "SYSCAT|SYSIBMADM|SYSPUBLIC|SYSSTAT|SYSIBM|SYSTOOLS|NULLID|SQLJ|SYSFUN|SYSIBMINTERNAL|SYSIBMTS|SYSPROC" >$OUTPATH/${DBNM}_table_need_reorg.txt
 
 
 awk 'BEGIN{a=0}/Index statistics/{a=NR}{if(a>0)print $0}' $OUTPATH/$DBNM.reorgchk.tables.`today`.out  > $OUTPATH/$DBNM.reorgchk.Indexstatistics.`today`.out
-awk '/Table:/{a=$2} /*/{print a} ' $OUTPATH/$DBNM.reorgchk.Indexstatistics.`today`.out | uniq  | grep -E -v "SYSCAT|SYSIBMADM|SYSPUBLIC|SYSSTAT|SYSIBM|SYSTOOLS|NULLID|SQLJ|SYSFUN|SYSIBMINTERNAL|SYSIBMTS|SYSPROC" >$OUTPATH/${DBNM}_index_need_reorg.txt
+awk '/Table:/{a=$2} /\*/{print a} ' $OUTPATH/$DBNM.reorgchk.Indexstatistics.`today`.out | grep -v ^$ | uniq  | grep -E -v "SYSCAT|SYSIBMADM|SYSPUBLIC|SYSSTAT|SYSIBM|SYSTOOLS|NULLID|SQLJ|SYSFUN|SYSIBMINTERNAL|SYSIBMTS|SYSPROC" >$OUTPATH/${DBNM}_index_need_reorg.txt
 exit #DEBUG
 
 
