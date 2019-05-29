@@ -156,18 +156,9 @@ rule_3.1
 for database in ${DATABASES}; do
         echo "Database: $database"
         db2 connect to $database >/dev/null 2>&1
-        AUTH_IDs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='U'")
-        for AUTH_ID in $AUTH_IDs; do
-                echo "使用者 $AUTH_ID 的 DBADM 權限列表，以下任一欄為 Y 表示該使用者 $AUTH_ID 具有 DBADM 權限。"
-                echo "AUTHORITY                D_USER D_GROUP D_PUBLIC ROLE_USER ROLE_GROUP ROLE_PUBLIC D_ROLE"
-                db2 -x "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE 
-            FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('$AUTH_ID', 'U') ) AS T 
-            where AUTHORITY='DBADM' and (D_USER='Y' or D_GROUP='Y' or D_PUBLIC='Y' or ROLE_USER='Y' or ROLE_GROUP='Y' or ROLE_PUBLIC='Y' or D_ROLE='Y')"
-                echo ""
-        done
+        db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT,  DBADMAUTH as DBADM from syscat.dbauth where DBADMAUTH = 'Y'" 
         db2 terminate >/dev/null 2>&1
 done
-
 
 cat <<rule_3.2
 
@@ -183,13 +174,7 @@ rule_3.2
 for database in ${DATABASES}; do
         echo "Database: $database"
         db2 connect to $database >/dev/null 2>&1
-
-        echo "使用者 $AP_USERID 的權限列表："
-        echo "AUTHORITY                D_USER D_GROUP D_PUBLIC ROLE_USER ROLE_GROUP ROLE_PUBLIC D_ROLE"
-        db2 -x "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
-          FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('$AP_USERID', 'U') ) AS T
-          where AUTHORITY='CONNECT' and (D_USER='Y' or D_GROUP='Y' or D_PUBLIC='Y' or ROLE_USER='Y' or ROLE_GROUP='Y' or ROLE_PUBLIC='Y' or D_ROLE='Y')"
-        echo ""
+        db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee,GRANTEETYPE as GT, CONNECTAUTH as CONNECT  from syscat.dbauth"
         db2 terminate >/dev/null 2>&1
 done
 
@@ -211,12 +196,12 @@ for database in ${DATABASES}; do
 
         echo "PUBLIC 群組的權限列表。"
         echo "以下任一欄為 Y 表示 PUBLIC 群組需修正權限。"
-        db2 "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
-          FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('PUBLIC', 'G') ) AS T
-           where (AUTHORITY='CONNECT' or AUTHORITY='CREATETAB' or AUTHORITY='BINDADD' or AUTHORITY='IMPLICIT_SCHEMA') and (D_USER='Y' or D_GROUP='Y' or D_PUBLIC='Y' or ROLE_USER='Y' or ROLE_GROUP='Y' or ROLE_PUBLIC='Y' or D_ROLE='Y')
-          "
+#        db2 "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
+#          FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('PUBLIC', 'G') ) AS T
+#           where (AUTHORITY='CONNECT' or AUTHORITY='CREATETAB' or AUTHORITY='BINDADD' or AUTHORITY='IMPLICIT_SCHEMA') and (D_USER='Y' or D_GROUP='Y' or D_PUBLIC='Y' or ROLE_USER='Y' or ROLE_GROUP='Y' or ROLE_PUBLIC='Y' or D_ROLE='Y')
+#          "
         echo ""
-
+db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as CO, CREATETABAUTH as CT, BINDADDAUTH as BA, NOFENCEAUTH as NF, DBADMAUTH as DBADM, IMPLSCHEMAAUTH as IS, LOADAUTH as LO, EXTERNALROUTINEAUTH as ER, QUIESCECONNECTAUTH as QC from syscat.dbauth where Grantee ='public'"
         db2 terminate >/dev/null 2>&1
 done
 
@@ -234,15 +219,17 @@ rule_3.4
 for database in ${DATABASES}; do
         echo "Database: $database"
         db2 connect to $database >/dev/null 2>&1
-        AUTH_IDs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='U'")
-        for AUTH_ID in $AUTH_IDs; do
-                echo "使用者 $AUTH_ID 的 CREATE_NOT_FENCED 權限列表，以下任一欄為 Y 表示使用者 $AUTH_ID 具有 CREATE_NOT_FENCED 權限。"
-                # echo "AUTHORITY                D_USER D_GROUP D_PUBLIC ROLE_USER ROLE_GROUP ROLE_PUBLIC D_ROLE"
-                db2 "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
-            FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('$AUTH_ID', 'U') ) AS T
-            where AUTHORITY='CREATE_NOT_FENCED_ROUTINE' and (D_USER='Y' or D_GROUP='Y' or D_PUBLIC='Y' or ROLE_USER='Y' or ROLE_GROUP='Y' or ROLE_PUBLIC='Y' or D_ROLE='Y')"
-                echo ""
-        done
+#        AUTH_IDs=$(db2 -x "SELECT AUTHID FROM SYSIBMADM.AUTHORIZATIONIDS where AUTHIDTYPE='U'")
+#        for AUTH_ID in $AUTH_IDs; do
+#                echo "使用者 $AUTH_ID 的 CREATE_NOT_FENCED 權限列表，以下任一欄為 Y 表示使用者 $AUTH_ID 具有 CREATE_NOT_FENCED 權限。"
+#                # echo "AUTHORITY                D_USER D_GROUP D_PUBLIC ROLE_USER ROLE_GROUP ROLE_PUBLIC D_ROLE"
+#                db2 "SELECT substr(AUTHORITY,1,24) as AUTHORITY, D_USER, D_GROUP, D_PUBLIC, ROLE_USER, ROLE_GROUP, ROLE_PUBLIC, D_ROLE
+#            FROM TABLE (SYSPROC.AUTH_LIST_AUTHORITIES_FOR_AUTHID ('$AUTH_ID', 'U') ) AS T
+#            where AUTHORITY='CREATE_NOT_FENCED_ROUTINE' and (D_USER='Y' or D_GROUP='Y' or D_PUBLIC='Y' or ROLE_USER='Y' or ROLE_GROUP='Y' or ROLE_PUBLIC='Y' or D_ROLE='Y')"
+#                echo ""
+#        done
+ 
+        db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, NOFENCEAUTH as CREATE_NOT_FENCED from syscat.dbauth where NOFENCEAUTH = 'Y'"
         db2 terminate >/dev/null 2>&1
 done
 
@@ -462,7 +449,7 @@ cat <<rule_4.2
 檢查目的：保護稽核軌跡與其設定檔
 檢查方式：檢視以下檔案之權限，是否僅由授權帳號可存取：
         db2audit.log
-        db2audit.cfg
+     +   db2audit.cfg
 
 檢查結果：
 rule_4.2
@@ -486,7 +473,6 @@ cat <<rule_4.3
 檢查結果：
 rule_4.3
 db2audit describe | grep "Log system administrator events"
-
 
 
 echo '5.參數設定 ============================================================'
@@ -643,5 +629,3 @@ cat <<rule_5.11
 
 檢查結果：
 rule_5.11
-
-ls -ald /opt/ibm/db2

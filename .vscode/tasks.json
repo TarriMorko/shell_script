@@ -4,9 +4,15 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "SSH somethin",
+            "label": "SSH reorg_chk_EPAPER.sh to inst411",
             "type": "shell",
             "command": "scp reorg_chk_EPAPER.sh inst411@192.168.142.111:/home/inst411",
+            "problemMatcher": []
+        },
+        {
+            "label": "SSH db2_security_audit.sh to inst411",
+            "type": "shell",
+            "command": "scp db2_security_audit.sh inst411@192.168.142.111:/home/inst411",
             "problemMatcher": []
         }
     ]
