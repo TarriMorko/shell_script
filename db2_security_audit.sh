@@ -124,9 +124,23 @@ cat <<rule_2.5
 檢查結果：
 rule_2.5
 
-db2 get dbm cfg | grep -y group
+
 echo ""
-cat /etc/group | grep db2iadm1
+echo "SYSADM group:" $(db2 get dbm cfg | grep SYSADM_GROUP | awk '{print $NF}')
+cat /etc/group | grep -y $(db2 get dbm cfg | grep SYSADM_GROUP | awk '{print $NF}')
+echo ""
+echo "SYSCTRL group:" $(db2 get dbm cfg | grep SYSCTRL_GROUP | awk '{print $NF}')
+cat /etc/group | grep -y $(db2 get dbm cfg | grep SYSCTRL_GROUP | awk '{print $NF}')
+echo ""
+echo "SYSMAINT group:" $(db2 get dbm cfg | grep SYSMAINT_GROUP | awk '{print $NF}')
+cat /etc/group | grep -y $(db2 get dbm cfg | grep SYSMAINT_GROUP | awk '{print $NF}')
+echo ""
+echo "SYSMON group:" $(db2 get dbm cfg | grep SYSMON_GROUP | awk '{print $NF}')
+cat /etc/group | grep -y $(db2 get dbm cfg | grep SYSMON_GROUP | awk '{print $NF}')
+echo ""
+
+
+
 
 cat <<rule_2.6
 
