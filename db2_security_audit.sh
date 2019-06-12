@@ -171,6 +171,7 @@ for database in ${DATABASES}; do
         echo "Database: $database"
         db2 connect to $database >/dev/null 2>&1
         db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as CO , CREATETABAUTH as CT, BINDADDAUTH as BA, NOFENCEAUTH as NF, DBADMAUTH as DBADM, IMPLSCHEMAAUTH as IS, LOADAUTH as LO, EXTERNALROUTINEAUTH as ER, QUIESCECONNECTAUTH as QC from syscat.dbauth"
+        db2 terminate >/dev/null 2>&1
 done
 
 
@@ -189,6 +190,7 @@ for database in ${DATABASES}; do
         echo "Database: $database"
         db2 connect to $database >/dev/null 2>&1
         db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as CO , CREATETABAUTH as CT, BINDADDAUTH as BA, NOFENCEAUTH as NF, DBADMAUTH as DBADM, IMPLSCHEMAAUTH as IS, LOADAUTH as LO, EXTERNALROUTINEAUTH as ER, QUIESCECONNECTAUTH as QC from syscat.dbauth"
+        db2 terminate >/dev/null 2>&1
 done
 
 cat <<rule_3.3
@@ -205,7 +207,8 @@ rule_3.3
 for database in ${DATABASES}; do
         echo "Database: $database"
         db2 connect to $database >/dev/null 2>&1
-        db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as CO , CREATETABAUTH as CT, BINDADDAUTH as BA, NOFENCEAUTH as NF, DBADMAUTH as DBADM, IMPLSCHEMAAUTH as IS, LOADAUTH as LO, EXTERNALROUTINEAUTH as ER, QUIESCECONNECTAUTH as QC from syscat.dbauth"
+        db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as CO , CREATETABAUTH as CT, BINDADDAUTH as BA, IMPLSCHEMAAUTH as IS from syscat.dbauth"
+        db2 terminate >/dev/null 2>&1
 done
 
 cat <<rule_3.4
@@ -222,7 +225,8 @@ rule_3.4
 for database in ${DATABASES}; do
         echo "Database: $database"
         db2 connect to $database >/dev/null 2>&1
-        db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as CO , CREATETABAUTH as CT, BINDADDAUTH as BA, NOFENCEAUTH as NF, DBADMAUTH as DBADM, IMPLSCHEMAAUTH as IS, LOADAUTH as LO, EXTERNALROUTINEAUTH as ER, QUIESCECONNECTAUTH as QC from syscat.dbauth"
+        db2 -v "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, NOFENCEAUTH as NF from syscat.dbauth"
+        db2 terminate >/dev/null 2>&1
 done
 
 cat <<rule_3.5
@@ -600,4 +604,4 @@ cat <<rule_5.11
 檢查結果：
 rule_5.11
 
-ls -ald /opt/ibm/db2
+ls -ald /opt/*/db2
