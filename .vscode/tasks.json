@@ -14,6 +14,12 @@
             "type": "shell",
             "command": "scp db2_security_audit.sh inst411@192.168.142.111:/home/inst411",
             "problemMatcher": []
-        }
+        },
+        {
+            "label": "SSH db2_security_audit_test.sh to inst411",
+            "type": "shell",
+            "command": "scp db2_security_audit_test.sh inst411@192.168.142.111:/home/inst411",
+            "problemMatcher": []
+        },
     ]
 }
