@@ -75,11 +75,11 @@ done
 
 db2 reorgchk current statistics on table all > $OUTPATH/$DBNM.reorgchk.tables.`today`.out
 awk 'BEGIN{a=0}/Index statistics/{a=NR}{if(a<=0)print $0}' $OUTPATH/$DBNM.reorgchk.tables.`today`.out > $OUTPATH/$DBNM.reorgchk.Tablestatistics.`today`.out
-awk '{ X[NR]=$0 } /\*/{print X[(NR-1)]} ' $OUTPATH/$DBNM.reorgchk.Tablestatistics.`today`.out | grep "Table:" | awk '{print $NF}' | grep -E -v "SYSCAT|SYSIBMADM|SYSPUBLIC|SYSSTAT|SYSIBM|SYSTOOLS|NULLID|SQLJ|SYSFUN|SYSIBMINTERNAL|SYSIBMTS|SYSPROC" >$OUTPATH/${DBNM}_table_need_reorg.txt
+awk '{ X[NR]=$0 } /\*/{print X[(NR-1)]} ' $OUTPATH/$DBNM.reorgchk.Tablestatistics.`today`.out | grep "Table:" | awk '{print $NF}' | grep -E -v "SYSCAT|SYSIBMADM|SYSPUBLIC|SYSSTAT|SYSIBM|SYSTOOLS|NULLID|SQLJ|SYSFUN|SYSIBMINTERNAL|SYSIBMTS|SYSPROC" >$OUTPATH/${DBNM}_table_need_reorg_$(today).txt
 
 
 awk 'BEGIN{a=0}/Index statistics/{a=NR}{if(a>0)print $0}' $OUTPATH/$DBNM.reorgchk.tables.`today`.out  > $OUTPATH/$DBNM.reorgchk.Indexstatistics.`today`.out
-awk '/Table:/{a=$2} /\*/{print a} ' $OUTPATH/$DBNM.reorgchk.Indexstatistics.`today`.out | grep -v ^$ | uniq  | grep -E -v "SYSCAT|SYSIBMADM|SYSPUBLIC|SYSSTAT|SYSIBM|SYSTOOLS|NULLID|SQLJ|SYSFUN|SYSIBMINTERNAL|SYSIBMTS|SYSPROC" >$OUTPATH/${DBNM}_index_need_reorg.txt
+awk '/Table:/{a=$2} /\*/{print a} ' $OUTPATH/$DBNM.reorgchk.Indexstatistics.`today`.out | grep -v ^$ | uniq  | grep -E -v "SYSCAT|SYSIBMADM|SYSPUBLIC|SYSSTAT|SYSIBM|SYSTOOLS|NULLID|SQLJ|SYSFUN|SYSIBMINTERNAL|SYSIBMTS|SYSPROC" >$OUTPATH/${DBNM}_index_need_reorg_$(today).txt
 exit #DEBUG
 
 
@@ -88,7 +88,7 @@ exit #DEBUG
 #=*=*=*=*=*=*=*=*=*=*=*=*=*=*=#
 
 
-for target_table in `cat $OUTPATH/${DBNM}_table_need_reorg.txt`; do
+for target_table in `cat $OUTPATH/${DBNM}_table_need_reorg_$(today).txt`; do
    date >> $outfile
    db2 -v "select count(*) from $target_table" >> $outfile
    date >> $outfile
@@ -107,7 +107,7 @@ sleep $after_reorg_table_wait_time
 #=*=*=   reorg indexes  *=*=*=#
 #=*=*=*=*=*=*=*=*=*=*=*=*=*=*=#
 
-for target_table_for_index in `cat $OUTPATH/${DBNM}_index_need_reorg.txt `
+for target_table_for_index in `cat $OUTPATH/${DBNM}_index_need_reorg_$(today).txt `
 do
    date >> $outfile
    db2 -v reorg indexes all for table $target_table_for_index allow write access >> $outfile
