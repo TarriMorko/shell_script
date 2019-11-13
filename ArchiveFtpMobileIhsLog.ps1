@@ -2,11 +2,12 @@ $HOSTNAME=hostname
 $LastCharacter=$HOSTNAME[-1]
 $Today=[datetime]::Today
 $Yesterday=[datetime]::Today.AddDays(-1)
+$Yesterday=$Yesterday.Year.ToString() + "." + $Yesterday.Month.ToString() + "." + $Yesterday.Day.ToString()
 
 
 if ($LastCharacter -eq "P" ) {
   $DaysToRemove=30
-} elseif ($LastCharacter -eq "C" ) {
+} elseif ($LastCharacter -eq "O" ) {
   $DaysToRemove=5
 } else {
   echo "Make sure run this in the right server !!!"
@@ -23,13 +24,30 @@ Set-Location C:\ihslog
 
 function rotate_file([string] $log_filename) {
   $oldfile=$log_filename
-  $newfile=$oldfile.$Yesterday
+  $newfile=$oldfile.ToString() + "." + $Yesterday.ToString()
   Copy-Item $oldfile $newfile
-  Compress-Archive .\$oldfile -DestinationPath .\$oldfile.zip
-  >$oldfile
+  Compress-Archive .\$newfile -DestinationPath .\$newfile.zip
+  Remove-Item $newfile
+  Clear-Content $oldfile
 }
 
-$p1 = rotate_file "http_plugin.log"
+
+rotate_file "http_plugin.log"
+rotate_file "error_log"
+rotate_file "ssl_error.log"
+rotate_file "access_log"
+rotate_file "ssl_access.log"
+
+Copy-Item *$Yesterday*zip C:\ihslog\FTP
+Get-ChildItem -Path C:\ihslog -Recurse -Force | Where-Object { !$_.PSIsContainer -and $_.CreationTime -lt $DaysToRemove } | Remove-Item -Force
 
 
+  # cd /ihslog
+  # tar -cvf ./${HOSTNAME}_IHSLOG_${Yesterday}.tar FTP
+  # mv ${HOSTNAME}_IHSLOG_${Yesterday}.tar FTP
 
+  # ###    ftp -inv < /home/ihsadmin/ftp.cfg > /home/ihsadmin/ftp.out
+
+  # /home/ihsadmin/ftp_used.sh >/home/ihsadmin/temp.ftp.cfg
+  # ftp -inv </home/ihsadmin/temp.ftp.cfg >/home/ihsadmin/ftp.out
+  # rm /home/ihsadmin/temp.ftp.cfg
