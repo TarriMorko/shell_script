@@ -21,5 +21,11 @@
             "command": "scp db2_security_audit_test.sh inst411@192.168.142.111:/home/inst411",
             "problemMatcher": []
         },
+        {
+            "label": "SSH show_63148port_LISTEN_counts.sh to 192.168.142.132",
+            "type": "shell",
+            "command": "scp show_63148port_LISTEN_counts.sh erwin@192.168.142.132:/home/erwin",
+            "problemMatcher": []
+        },
     ]
 }
