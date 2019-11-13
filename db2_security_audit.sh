@@ -45,8 +45,14 @@ query_all_db() {
     db2 $1 | grep -q "0 record(s) selected."
     if [ $? -eq 0 ]; then
       echo "資料庫：$database ，項目通過測試。"
+      echo "使用SQL:"
+      echo $1
+      echo ''
     else
       echo "資料庫：$database ，此項目未通過測試！"
+      echo "使用SQL:"
+      echo $1
+      echo ''      
       echo '======================================================' >> $DETAILLOG
       echo "資料庫：$database ，項目 $2 未通過測試！" >> $DETAILLOG
       echo "Database: $database" >> $DETAILLOG
@@ -159,7 +165,6 @@ echo ""
 
 
 
-
 cat <<rule_2.6
 
 
@@ -173,22 +178,27 @@ rule_2.6
 db2 get dbm cfg | grep AUTHENTICATION
 
 echo ''
+echo ''
+echo ''
 echo '3.授權 ================================================================'
 
 
 
 cat <<rule_3.1
+
+
 編號 3.1
 檢查目的：DBADM權限
 檢查方式：檢視擁有DBADM權限(Authorities項目皆勾選)之使用者代碼(USER-ID)帳號與群組為已授權之DBAs或該應用之擁有者
 
 檢查結果：
 rule_3.1
-echo "$INSTNAME_uppercase" "debug"
 query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, DBADMAUTH as DBADM from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' and DBADMAUTH = 'Y'" "3.1"
 
 
 cat <<rule_3.2
+
+
 編號 3.2
 檢查目的：應用程式帳號權限
 檢查方式：檢視資料庫/「使用者與群組物件」中，各案例資料庫中之使用者，確認其權限之適當性
@@ -201,6 +211,8 @@ query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8
 
 
 cat <<rule_3.3
+
+
 編號 3.3
 檢查目的：PUBLIC角色
 檢查方式：檢視資料庫/「使用者與群組物件」中， PUBLIC權限
@@ -216,6 +228,8 @@ query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8
 
 
 cat <<rule_3.4
+
+
 編號 3.4
 檢查目的： CREATE_NOT_FENCED 權限
 檢查方式：檢視資料庫/「使用者與群組物件」中，各案例資料庫中之使用者之「Database」權限
@@ -229,6 +243,8 @@ query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8
 
 
 cat <<rule_3.5
+
+
 編號 3.5
 檢查目的：應限制Tablespace內PUBLIC持有之物件權限
 檢查方式：檢視各Tablespace設定

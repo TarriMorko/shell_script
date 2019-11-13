@@ -6,6 +6,21 @@ INST=inst411
 DBNM=tp1
 KEEPDAYS=65
 OUTPATH="/home/$INST/db2cmd/log/reorg/"
+
+if [ -z "${OUTPATH}" ]; then
+   echo "the OUTPUT path is not specified, sh terminate."
+   exit
+else
+   find ${OUTPATH} -name "*Tablestatistics" -type f -ctime +${KEEPDAYS} -delete
+   find ${OUTPATH} -name "*aft" -type f -ctime +${KEEPDAYS} -delete
+   find ${OUTPATH} -name "*bef" -type f -ctime +${KEEPDAYS} -delete
+   find ${OUTPATH} -name "*out" -type f -ctime +${KEEPDAYS} -delete
+   find ${OUTPATH} -name "*schemas" -type f -ctime +${KEEPDAYS} -delete
+   find ${OUTPATH} -name "*tables" -type f -ctime +${KEEPDAYS} -delete
+   find ${OUTPATH} -name "*txt" -type f -ctime +${KEEPDAYS} -delete
+   find ${OUTPATH} -name "*gz" -type f -ctime +${KEEPDAYS} -delete
+fi
+
 after_reorg_table_wait_time=1  # DEBUG 原本是 60
 after_reorg_index_wait_time=1  # DEBUG 原本是 60
 
