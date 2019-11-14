@@ -1,16 +1,15 @@
 $HOSTNAME=hostname
 $LastCharacter=$HOSTNAME[-1]
-$Today=[datetime]::Today
 $Yesterday=[datetime]::Today.AddDays(-1)
 $Yesterday=$Yesterday.Year.ToString() + "." + $Yesterday.Month.ToString() + "." + $Yesterday.Day.ToString()
-
+$ErrorActionPreference='silentlycontinue'
 
 if ($LastCharacter -eq "P" ) {
   $DaysToRemove=30
-} elseif ($LastCharacter -eq "O" ) {
+} elseif ($LastCharacter -eq "c" ) {
   $DaysToRemove=5
 } else {
-  echo "Make sure run this in the right server !!!"
+  Write-Output "Make sure run this in the right server !!!"
   exit
 }
 
@@ -33,9 +32,9 @@ function rotate_file([string] $log_filename) {
 
 
 rotate_file "http_plugin.log"
-rotate_file "error_log"
+rotate_file "error.log"
 rotate_file "ssl_error.log"
-rotate_file "access_log"
+rotate_file "access.log"
 rotate_file "ssl_access.log"
 
 Copy-Item *$Yesterday*zip C:\ihslog\FTP
