@@ -193,8 +193,9 @@ cat <<rule_3.1
 
 檢查結果：
 rule_3.1
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, DBADMAUTH as DBADM from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' and DBADMAUTH = 'Y'" "3.1"
+query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, DBADMAUTH as DBADM from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND GRANTEE <> '$i'"; done) and DBADMAUTH = 'Y'" "3.1"
 
+exit
 
 cat <<rule_3.2
 

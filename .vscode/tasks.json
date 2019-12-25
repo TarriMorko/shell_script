@@ -3,29 +3,46 @@
     // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
-        {
-            "label": "SSH reorg_chk_EPAPER.sh to inst411",
-            "type": "shell",
-            "command": "scp reorg_chk_EPAPER.sh inst411@192.168.142.111:/home/inst411",
-            "problemMatcher": []
+      {
+        "label": "SSH reorg_chk_EPAPER.sh to inst411",
+        "type": "shell",
+        "command": "scp reorg_chk_EPAPER.sh inst411@192.168.142.111:/home/inst411",
+        "problemMatcher": []
+      },
+      {
+        "label": "SSH db2_security_audit.sh to inst411",
+        "type": "shell",
+        "command": "scp db2_security_audit.sh inst411@192.168.142.111:/home/inst411",
+        "problemMatcher": []
+      },
+      {
+        "label": "SSH db2_security_audit_test.sh to inst411",
+        "type": "shell",
+        "command": "scp db2_security_audit_test.sh inst411@192.168.142.111:/home/inst411",
+        "problemMatcher": []
+      },
+      {
+        "label": "SSH show_63148port_LISTEN_counts.sh to 192.168.142.132",
+        "type": "shell",
+        "command": "scp show_63148port_LISTEN_counts.sh erwin@192.168.142.132:/home/erwin",
+        "problemMatcher": []
+      },
+      {
+        "type": "script",
+        "scriptType": "bash",
+        "cmdLine": "./ArchiveFtpMobileIhsLog.sh",
+        "path": "",
+        "fileName": "ArchiveFtpMobileIhsLog.sh",
+        "scriptFile": true,
+        "requiresArgs": false,
+        "uri": {
+          "$mid": 1,
+          "fsPath": "c:\\src\\shell_script\\ArchiveFtpMobileIhsLog.sh",
+          "_sep": 1,
+          "path": "/c:/src/shell_script/ArchiveFtpMobileIhsLog.sh",
+          "scheme": "file"
         },
-        {
-            "label": "SSH db2_security_audit.sh to inst411",
-            "type": "shell",
-            "command": "scp db2_security_audit.sh inst411@192.168.142.111:/home/inst411",
-            "problemMatcher": []
-        },
-        {
-            "label": "SSH db2_security_audit_test.sh to inst411",
-            "type": "shell",
-            "command": "scp db2_security_audit_test.sh inst411@192.168.142.111:/home/inst411",
-            "problemMatcher": []
-        },
-        {
-            "label": "SSH show_63148port_LISTEN_counts.sh to 192.168.142.132",
-            "type": "shell",
-            "command": "scp show_63148port_LISTEN_counts.sh erwin@192.168.142.132:/home/erwin",
-            "problemMatcher": []
-        },
+        "problemMatcher": []
+      }
     ]
 }
