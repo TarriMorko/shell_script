@@ -52,7 +52,7 @@ query_all_db() {
       echo "資料庫：$database ，此項目未通過測試！"
       echo "使用SQL:"
       echo $1
-      echo ''      
+      echo ''
       echo '======================================================' >> $DETAILLOG
       echo "資料庫：$database ，項目 $2 未通過測試！" >> $DETAILLOG
       echo "Database: $database" >> $DETAILLOG
@@ -69,7 +69,7 @@ echo '1.軟體版本與資料 ==================================================
 cat <<rule_1.1
 
 
-編號 1.1 
+編號 1.1
 檢查目的：軟體版本更新
 檢查方式：輸入指令"db2level"，檢查目前使用之版本與修補版本狀況
 安裝半年前最新版且穩定之修補程式
@@ -92,9 +92,14 @@ cat <<rule_2.1
 檢查結果：
 rule_2.1
 
-lsuser -f db2as
-lsgroup -f db2asgrp
-# cat /etc/group | grep db2asgrp
+for das in $(find /opt/ibm/db2 -name "daslist" 2>/dev/null | tail -n 1); do
+  if [[ "$($das)" = "" ]] ; then
+    echo "There is no DB2 Administrator Server."
+  else
+    echo "There are $($das) DAS service in this server."
+  fi
+done
+
 
 cat <<rule_2.2
 
@@ -193,8 +198,9 @@ cat <<rule_3.1
 
 檢查結果：
 rule_3.1
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, DBADMAUTH as DBADM from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' and DBADMAUTH = 'Y'" "3.1"
+query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, DBADMAUTH as DBADM from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND GRANTEE <> '$i'"; done) and DBADMAUTH = 'Y'" "3.1"
 
+exit
 
 cat <<rule_3.2
 

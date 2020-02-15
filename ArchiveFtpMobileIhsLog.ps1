@@ -6,7 +6,7 @@ $ErrorActionPreference='silentlycontinue'
 
 if ($LastCharacter -eq "P" ) {
   $DaysToRemove=30
-} elseif ($LastCharacter -eq "c" ) {
+} elseif ($LastCharacter -eq "T" ) {
   $DaysToRemove=5
 } else {
   Write-Output "Make sure run this in the right server !!!"
@@ -38,7 +38,7 @@ rotate_file "access.log"
 rotate_file "ssl_access.log"
 
 Copy-Item *$Yesterday*zip C:\ihslog\FTP
-Get-ChildItem -Path C:\ihslog -Recurse -Force | Where-Object { !$_.PSIsContainer -and $_.CreationTime -lt $DaysToRemove } | Remove-Item -Force
+Get-ChildItem -Path C:\ihslog -Recurse -Force | Where-Object { !$_.PSIsContainer -and $_.CreationTime -lt (Get-Date).AddDays(-$DaysToRemove) } | Remove-Item -Force
 
 
   # cd /ihslog
