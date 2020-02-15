@@ -4,6 +4,7 @@
     "version": "2.0.0",
     "tasks": [
       {
+<<<<<<< HEAD
         "label": "SSH password_change_v1.sh to inst411",
         "type": "shell",
         "command": "scp password_change_v1.sh inst411@192.168.142.111:/src",
@@ -16,6 +17,8 @@
         "problemMatcher": []
       },
       {
+=======
+>>>>>>> 705beb19a013bb57b7608d6af84f99e2188e7951
         "label": "SSH reorg_chk_EPAPER.sh to inst411",
         "type": "shell",
         "command": "scp reorg_chk_EPAPER.sh inst411@192.168.142.111:/home/inst411",
@@ -34,12 +37,15 @@
         "problemMatcher": []
       },
       {
+<<<<<<< HEAD
         "label": "SSH landbank qrep check",
         "type": "shell",
         "command": "scp landbank_check_sqlcode.sh max@192.168.142.7:/src",
         "problemMatcher": []
       },
       {
+=======
+>>>>>>> 705beb19a013bb57b7608d6af84f99e2188e7951
         "label": "SSH show_63148port_LISTEN_counts.sh to 192.168.142.132",
         "type": "shell",
         "command": "scp show_63148port_LISTEN_counts.sh erwin@192.168.142.132:/home/erwin",
@@ -48,16 +54,28 @@
       {
         "type": "script",
         "scriptType": "bash",
+<<<<<<< HEAD
         "cmdLine": "./check_db2hadr_primary.sh",
         "path": "",
         "fileName": "check_db2hadr_primary.sh",
+=======
+        "cmdLine": "./ArchiveFtpMobileIhsLog.sh",
+        "path": "",
+        "fileName": "ArchiveFtpMobileIhsLog.sh",
+>>>>>>> 705beb19a013bb57b7608d6af84f99e2188e7951
         "scriptFile": true,
         "requiresArgs": false,
         "uri": {
           "$mid": 1,
+<<<<<<< HEAD
           "fsPath": "c:\\src\\shell_script\\check_db2hadr_primary.sh",
           "_sep": 1,
           "path": "/c:/src/shell_script/check_db2hadr_primary.sh",
+=======
+          "fsPath": "c:\\src\\shell_script\\ArchiveFtpMobileIhsLog.sh",
+          "_sep": 1,
+          "path": "/c:/src/shell_script/ArchiveFtpMobileIhsLog.sh",
+>>>>>>> 705beb19a013bb57b7608d6af84f99e2188e7951
           "scheme": "file"
         },
         "problemMatcher": []
