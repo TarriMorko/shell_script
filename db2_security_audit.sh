@@ -29,6 +29,8 @@ if [ -e /home/$INSTNAME/sqllib/db2profile ]; then
         WORKING_DIR="/home/$INSTNAME"
         cd $WORKING_DIR
         DETAILLOG="${WORKING_DIR}/db2_security_audit_detail_$(hostname)_${INSTNAME}_$(date +"%Y%m%d_%H%M%S").txt"
+        echo $DETAILLOG
+        echo "DEBUG--------------------------------------"
 else
         echo "Can not source db2profile. Exit."
         exit
@@ -48,6 +50,12 @@ query_all_db() {
       echo "使用SQL:"
       echo $1
       echo ''
+      echo '======================================================' >> $DETAILLOG
+      echo "資料庫：$database ，項目通過測試。"  >> $DETAILLOG
+      echo "使用SQL:"   >> $DETAILLOG
+      echo $1   >> $DETAILLOG
+      echo ''   >> $DETAILLOG
+      echo ''   >> $DETAILLOG
     else
       echo "資料庫：$database ，此項目未通過測試！"
       echo "使用SQL:"
@@ -200,7 +208,7 @@ cat <<rule_3.1
 rule_3.1
 query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, DBADMAUTH as DBADM from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND GRANTEE <> '$i'"; done) and DBADMAUTH = 'Y'" "3.1"
 
-exit
+
 
 cat <<rule_3.2
 
