@@ -113,7 +113,7 @@ cat <<rule_2.2
 rule_2.2
 
 # DEBUG
-# query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as CO , CREATETABAUTH as CT, BINDADDAUTH as BA, NOFENCEAUTH as NF, DBADMAUTH as DBADM, IMPLSCHEMAAUTH as IS, LOADAUTH as LO, EXTERNALROUTINEAUTH as ER, QUIESCECONNECTAUTH as QC from syscat.dbauth"
+# query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as CO , CREATETABAUTH as CT, BINDADDAUTH as BA, NOFENCEAUTH as NF, DBADMAUTH as DBADM, IMPLSCHEMAAUTH as IS, LOADAUTH as LO, EXTERNALROUTINEAUTH as ER, QUIESCECONNECTAUTH as QC from syscat.dbauth"
 
 cat <<rule_2.3
 
@@ -198,7 +198,7 @@ cat <<rule_3.1
 
 檢查結果：
 rule_3.1
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, DBADMAUTH as DBADM from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND GRANTEE <> '$i'"; done) and DBADMAUTH = 'Y'" "3.1"
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, DBADMAUTH as DBADM from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND GRANTEE <> '$i'"; done) and DBADMAUTH = 'Y'" "3.1"
 
 exit
 
@@ -212,7 +212,7 @@ cat <<rule_3.2
 
 檢查結果：
 rule_3.2
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as connect from syscat.dbauth where  GRANTEE <> '${INSTNAME_uppercase}' $( for i in $ALL_AP_ACCOUNT ; do echo "AND GRANTEE <> '$i'"; done)" "3.2"
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as connect from syscat.dbauth where  GRANTEE <> '${INSTNAME_uppercase}' $( for i in $ALL_AP_ACCOUNT ; do echo "AND GRANTEE <> '$i'"; done)" "3.2"
 
 
 
@@ -226,7 +226,7 @@ cat <<rule_3.3
 
 檢查結果：
 rule_3.3
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE, CONNECTAUTH as CONNECT, CREATETABAUTH as CREATETAB, BINDADDAUTH as BINDADD, IMPLSCHEMAAUTH as IMPLICIT_SCHEMA from syscat.dbauth where Grantee ='PUBLIC' AND (CONNECTAUTH='Y' or CREATETABAUTH='Y' or BINDADDAUTH='Y' or IMPLSCHEMAAUTH='Y')" "3.3"
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE, CONNECTAUTH as CONNECT, CREATETABAUTH as CREATETAB, BINDADDAUTH as BINDADD, IMPLSCHEMAAUTH as IMPLICIT_SCHEMA from syscat.dbauth where Grantee ='PUBLIC' AND (CONNECTAUTH='Y' or CREATETABAUTH='Y' or BINDADDAUTH='Y' or IMPLSCHEMAAUTH='Y')" "3.3"
 
 
 
@@ -243,7 +243,7 @@ cat <<rule_3.4
 
 檢查結果：
 rule_3.4
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE, NOFENCEAUTH as CREATE_NOT_FENCED from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' AND NOFENCEAUTH='Y'" "3.4"
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE, NOFENCEAUTH as CREATE_NOT_FENCED from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' AND NOFENCEAUTH='Y'" "3.4"
 
 
 
@@ -258,7 +258,7 @@ cat <<rule_3.5
 
 檢查結果：
 rule_3.5
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(tbspace as char(20)) as TBSPACE,USEAUTH as USE from SYSCAT.TBSPACEAUTH where GRANTEE <> '${INSTNAME_uppercase}' " "3.5"
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, Cast(tbspace as char(20)) as TBSPACE,USEAUTH as USE from SYSCAT.TBSPACEAUTH where GRANTEE <> '${INSTNAME_uppercase}' " "3.5"
 
 
 
@@ -286,33 +286,33 @@ rule_3.6
 
 echo ""
 echo "檢測 SYSCAT.dbauth 結果："
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as connect , CREATETABAUTH as CREATETAB, BINDADDAUTH as BINDADD, NOFENCEAUTH as NO_FENCE, DBADMAUTH as DBADM, IMPLSCHEMAAUTH as IMPLSCHEMA, LOADAUTH as LOAD, EXTERNALROUTINEAUTH as EXTERNAL_ROUTINE, QUIESCECONNECTAUTH as QUIESCE_CONNECT from syscat.dbauth where Grantee='PUBLIC'" "3.6 檢測 SYSCAT.dbauth 結果 "
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as connect , CREATETABAUTH as CREATETAB, BINDADDAUTH as BINDADD, NOFENCEAUTH as NO_FENCE, DBADMAUTH as DBADM, IMPLSCHEMAAUTH as IMPLSCHEMA, LOADAUTH as LOAD, EXTERNALROUTINEAUTH as EXTERNAL_ROUTINE, QUIESCECONNECTAUTH as QUIESCE_CONNECT from syscat.dbauth where Grantee='PUBLIC'" "3.6 檢測 SYSCAT.dbauth 結果 "
 
 
 
 echo ""
 echo "檢測 SYSCAT.tabauth 結果："
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(tabschema as char(10)) as SCHEMA, Cast(tabname as char(45)) as TABLENAME, CONTROLAUTH as CTL, SELECTAUTH as SEL, INSERTAUTH as INS, UPDATEAUTH as UPD, DELETEAUTH as DEL, ALTERAUTH as ALT, INDEXAUTH as IDX, REFAUTH as REF from syscat.tabauth where grantee='PUBLIC' and tabschema not like 'SYS%' AND (CONTROLAUTH='Y' or SELECTAUTH='Y' or INSERTAUTH='Y' or UPDATEAUTH='Y' or DELETEAUTH='Y' or ALTERAUTH='Y' or ALTERAUTH='Y' or INDEXAUTH='Y' or REFAUTH='Y')" "3.6 檢測 SYSCAT.tabauth 結果 "
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, Cast(tabschema as char(10)) as SCHEMA, Cast(tabname as char(45)) as TABLENAME, CONTROLAUTH as CTL, SELECTAUTH as SEL, INSERTAUTH as INS, UPDATEAUTH as UPD, DELETEAUTH as DEL, ALTERAUTH as ALT, INDEXAUTH as IDX, REFAUTH as REF from syscat.tabauth where grantee='PUBLIC' and tabschema not like 'SYS%' AND (CONTROLAUTH='Y' or SELECTAUTH='Y' or INSERTAUTH='Y' or UPDATEAUTH='Y' or DELETEAUTH='Y' or ALTERAUTH='Y' or ALTERAUTH='Y' or INDEXAUTH='Y' or REFAUTH='Y')" "3.6 檢測 SYSCAT.tabauth 結果 "
 
 
 echo ""
 echo "檢測 SYSCAT.packageauth 結果："
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(pkgschema as char(10)) as SCHEMA, Cast(pkgname as char(24)) as PKGNAME, CONTROLAUTH as CTL, BINDAUTH as BA, EXECUTEAUTH as EX from syscat.packageauth where grantee='PUBLIC' and pkgschema<>'NULLID'" "3.6 檢測 SYSCAT.packageauth 結果 "
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, Cast(pkgschema as char(10)) as SCHEMA, Cast(pkgname as char(24)) as PKGNAME, CONTROLAUTH as CTL, BINDAUTH as BA, EXECUTEAUTH as EX from syscat.packageauth where grantee='PUBLIC' and pkgschema<>'NULLID'" "3.6 檢測 SYSCAT.packageauth 結果 "
 
 
 echo ""
 echo "檢測 SYSCAT.indexauth 結果："
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(indschema as char(10)) as SCHEMA, Cast(indname as char(40)) as INDNAME, CONTROLAUTH as CTL from syscat.indexauth where grantee='PUBLIC'" "3.6 檢測 SYSCAT.indexauth 結果 "
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, Cast(indschema as char(10)) as SCHEMA, Cast(indname as char(40)) as INDNAME, CONTROLAUTH as CTL from syscat.indexauth where grantee='PUBLIC'" "3.6 檢測 SYSCAT.indexauth 結果 "
 
 
 echo ""
 echo "檢測 SYSCAT.colauth 結果："
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE as GT, Cast(tabschema as char(10)) as SCHEMA, Cast(tabname as char(40)) as TABLENAME, Cast(colname as char(20)) as COLNAME, COLNO, PRIVTYPE, GRANTABLE from syscat.colauth where grantee='PUBLIC' and tabschema not like 'SYS%'" "3.6 檢測 SYSCAT.colauth 結果"
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, Cast(tabschema as char(10)) as SCHEMA, Cast(tabname as char(40)) as TABLENAME, Cast(colname as char(20)) as COLNAME, COLNO, PRIVTYPE, GRANTABLE from syscat.colauth where grantee='PUBLIC' and tabschema not like 'SYS%'" "3.6 檢測 SYSCAT.colauth 結果"
 
 
 echo ""
 echo "檢測 SYSCAT.passthruauth 結果："
-query_all_db "select Cast(grantor as char(8)) as Grantor, Cast(grantee as char(8)) as Grantee, GRANTEETYPE, substr(SERVERNAME,1,20) as SERVERNAME from syscat.passthruauth" "3.6 檢測 SYSCAT.passthruauth 結果"
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE, substr(SERVERNAME,1,20) as SERVERNAME from syscat.passthruauth" "3.6 檢測 SYSCAT.passthruauth 結果"
 
 
 echo ""
