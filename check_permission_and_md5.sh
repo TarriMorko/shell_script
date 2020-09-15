@@ -226,7 +226,7 @@ list_dirs_permissions_by_user() {
   if [ $ONE_OF_DIRECTORY_HAS_RWX_PERMISSION -eq 0 ];then
     echo ""
   else
-    echo "本伺服器可遠端帳號皆無權限存取以下路徑 $_DIR"  >>${ACCESS_REPORT} 
+    echo "本伺服器連線帳號皆無權限存取以下路徑 $_DIR"  >>${ACCESS_REPORT} 
   fi
 
   if [ "${option_1}" != "${direct_option}" ] ; then
