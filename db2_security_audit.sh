@@ -29,8 +29,6 @@ if [ -e /home/$INSTNAME/sqllib/db2profile ]; then
         WORKING_DIR="/home/$INSTNAME"
         cd $WORKING_DIR
         DETAILLOG="${WORKING_DIR}/db2_security_audit_detail_$(hostname)_${INSTNAME}_$(date +"%Y%m%d_%H%M%S").txt"
-        echo $DETAILLOG
-        echo "DEBUG--------------------------------------"
 else
         echo "Can not source db2profile. Exit."
         exit
@@ -49,6 +47,7 @@ query_all_db() {
       echo "資料庫：$database ，項目通過測試。"
       echo "使用SQL:"
       echo $1
+      echo "-----------------------------------------------------------------"
       echo ''
       echo '======================================================' >> $DETAILLOG
       echo "資料庫：$database ，項目通過測試。"  >> $DETAILLOG
@@ -56,23 +55,30 @@ query_all_db() {
       echo $1   >> $DETAILLOG
       echo ''   >> $DETAILLOG
       echo ''   >> $DETAILLOG
+      db2 terminate >/dev/null 2>&1
+      return 0
     else
       echo "資料庫：$database ，此項目未通過測試！"
       echo "使用SQL:"
       echo $1
+      echo "-----------------------------------------------------------------"
       echo ''
       echo '======================================================' >> $DETAILLOG
       echo "資料庫：$database ，項目 $2 未通過測試！" >> $DETAILLOG
       echo "Database: $database" >> $DETAILLOG
       db2 -v $1 >> $DETAILLOG
+      db2 terminate >/dev/null 2>&1
+      return 1
     fi
-    db2 terminate >/dev/null 2>&1
   done
 }
 
 
 echo ''
-echo '1.軟體版本與資料 ======================================================'
+echo '========================================================================'
+echo '1.軟體版本與資料'
+echo '========================================================================'
+echo ''
 
 cat <<rule_1.1
 
@@ -87,12 +93,15 @@ rule_1.1
 
 db2level
 
-echo ''
-echo '2.DB2之存取控制 ======================================================='
 
+echo ''
+echo '========================================================================'
+echo '2.DB2之存取控制 '
+echo '========================================================================'
+echo ''
 cat <<rule_2.1
 
-
+-----------------------------------------------------------------
 編號 2.1
 檢查目的：DAS管理特權應僅由資料庫管理人員帳號持有
 檢查方式：DAS管理特權應僅由資料庫管理人員帳號持有
@@ -111,7 +120,7 @@ done
 
 cat <<rule_2.2
 
-
+-----------------------------------------------------------------
 編號 2.2
 檢查目的：停用或關閉不必要之帳號
 檢查方式：檢視資料庫/「使用者與群組物件」中，各案例資料庫中之使用者，確認其權限之適當性
@@ -125,7 +134,7 @@ rule_2.2
 
 cat <<rule_2.3
 
-
+-----------------------------------------------------------------
 編號 2.3
 檢查目的：Administration Server帳號授權
 檢查方式：檢視Administration Server之帳號於作業系統內之權限
@@ -138,9 +147,10 @@ rule_2.3
 lsuser db2as
 cat /etc/group | grep db2asgrp
 
+
 cat <<rule_2.4
 
-
+-----------------------------------------------------------------
 編號 2.4
 檢查目的：UNIX系統DB2 fenced user僅配置最低OS權限
 檢查方式：僅給予存取根目錄下的權限(read/execute permissions to files stored in its homedirectory)與登入系統(log into the server)之權限
@@ -151,9 +161,10 @@ rule_2.4
 lsuser db2fenc1
 cat /etc/group | grep db2fadm1
 
+
 cat <<rule_2.5
 
-
+-----------------------------------------------------------------
 編號 2.5
 檢查目的：SYSADM,SYSCTRL,與SYSMAINT權限設定
 檢查方式：只有授權之DBAs群組帳號才能配置SYSADM_Group, SYSCTR_Group, 與 SYSMAINT_Group權限
@@ -180,7 +191,7 @@ echo ""
 
 cat <<rule_2.6
 
-
+-----------------------------------------------------------------
 編號 2.6
 檢查目的：身份驗證方式
 檢查方式：資料庫管理員須確認案例(instance)之身份驗證方式設定為SERVER、 SERER_ENCRYPT、KERBEROS 或 KERBEROS_ENCRYPT
@@ -193,9 +204,9 @@ db2 get dbm cfg | grep AUTHENTICATION
 echo ''
 echo ''
 echo ''
-echo '3.授權 ================================================================'
-
-
+echo '========================================================================'
+echo '3.授權 '
+echo '========================================================================'
 
 cat <<rule_3.1
 
@@ -235,9 +246,6 @@ cat <<rule_3.3
 檢查結果：
 rule_3.3
 query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE, CONNECTAUTH as CONNECT, CREATETABAUTH as CREATETAB, BINDADDAUTH as BINDADD, IMPLSCHEMAAUTH as IMPLICIT_SCHEMA from syscat.dbauth where Grantee ='PUBLIC' AND (CONNECTAUTH='Y' or CREATETABAUTH='Y' or BINDADDAUTH='Y' or IMPLSCHEMAAUTH='Y')" "3.3"
-
-
-
 
 
 
@@ -371,29 +379,20 @@ echo "檢測 Createin (schema) 結果"
 query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '${INSTNAME_uppercase}' AND AUTHIDTYPE='U' AND PRIVILEGE='CREATEIN' and OBJECTTYPE='SCHEMA' AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done) $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 檢測 Createin (schema) 結果 "
 
 
-
 echo "檢測 References (tables, nicknames)  結果"
 query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '${INSTNAME_uppercase}' AND AUTHIDTYPE='U' AND PRIVILEGE='REFERENCE'and (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'   $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 檢測 References (tables, nicknames) 結果 "
-
-
 
 
 echo "檢測 Dropin (schema)- Passthru (server) 結果"
 query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '${INSTNAME_uppercase}' AND AUTHIDTYPE='U' AND PRIVILEGE='DROPIN' and OBJECTTYPE='SCHEMA' AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'   $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 檢測 Dropin (schema)- Passthru (server) 結果 "
 
 
-
-
 echo "檢測 Usage (sequences)  結果"
 query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '${INSTNAME_uppercase}' AND AUTHIDTYPE='U' AND PRIVILEGE='USAGE' and OBJECTTYPE='SEQUENCE'  AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'   $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 檢測 Usage (sequences) 結果 "
-
-
 
 echo ""
 echo "Alter (tables, views, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
 query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='ALTER' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='NICKNAME' or OBJECTTYPE='VIEW') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" echo "3.7 Alter (tables, views, nicknames) (1) 僅能由資料庫管理人員帳號持有。"
-
-
 
 
 echo ""
@@ -401,11 +400,9 @@ echo "Control (sequences, nicknames, packages, procedures, functions, methods, t
 query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='CONTROL' AND (OBJECTTYPE='SEQUENCE'or OBJECTTYPE='NICKNAME'or OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE'or OBJECTTYPE='FUNCTION'or OBJECTTYPE='METHOD'or OBJECTTYPE='TABLE'or OBJECTTYPE='VIEW'or OBJECTTYPE='TABLESPACE') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Control (sequences, nicknames, packages, procedures, functions, methods, tables, views, tablespaces) (或限制具Createin (schema)執行者擁有control packages權限) (1) 僅能由資料庫管理人員帳號持有。"
 
 
-
 echo ""
 echo "Delete (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
 query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='DELETE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done) $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Delete (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-
 
 
 echo ""
@@ -429,8 +426,6 @@ query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grant
 
 
 
-cat <<rule_3.8
-
 
 cat <<rule_3.8
 編號 3.8
@@ -441,12 +436,15 @@ cat <<rule_3.8
         同 3.7
 rule_3.8
 
-echo '' 
-echo '4.稽核軌跡（重要系統資料庫適用）======================================='
+echo ''
+echo ''
+echo '========================================================================'
+echo '4.稽核軌跡（重要系統資料庫適用）'
+echo '========================================================================'
 
 cat <<rule_4.1
 
-
+-----------------------------------------------------------------
 編號 4.1
 檢查目的：啟動稽核軌跡
 檢查方式：輸入以下指令，並檢視結果：
@@ -460,7 +458,7 @@ db2audit describe | grep "Audit active"
 
 cat <<rule_4.2
 
-
+-----------------------------------------------------------------
 編號 4.2
 檢查目的：保護稽核軌跡與其設定檔
 檢查方式：檢視以下檔案之權限，是否僅由授權帳號可存取： 
@@ -479,7 +477,7 @@ find ~ -name "db2audit.cfg" -exec ls -al {} \;
 
 cat <<rule_4.3
 
-
+-----------------------------------------------------------------
 編號 4.3
 檢查目的：稽核軌跡之設置
 檢查方式：輸入以下指令，檢視結果：
@@ -491,12 +489,14 @@ rule_4.3
 db2audit describe | grep "Log system administrator events"
 
 
-
-echo '5.參數設定 ============================================================'
-
+echo ''
+echo '========================================================================'
+echo '5.參數設定 '
+echo '========================================================================'
+echo ''
 cat <<rule_5.1
 
-
+-----------------------------------------------------------------
 編號 5.1
 檢查目的：稽核軌跡容量設置
 檢查方式：檢視各Instance之audit-buf-sz參數設定
@@ -509,7 +509,7 @@ db2 get dbm cfg | grep AUDIT_BUF_SZ
 
 cat <<rule_5.2
 
-
+-----------------------------------------------------------------
 編號 5.2
 檢查目的：關閉Discovery Mode
 檢查方式：檢視各Instance其discover參數設定
@@ -522,7 +522,7 @@ db2 get dbm cfg | grep '(DISCOVER)'
 
 cat <<rule_5.3
 
-
+-----------------------------------------------------------------
 編號 5.3
 檢查目的：關閉Discover Server Instance
 檢查方式：檢視discover_inst參數設定
@@ -535,7 +535,7 @@ db2 get dbm cfg | grep '(DISCOVER_INST)'
 
 cat <<rule_5.4
 
-
+-----------------------------------------------------------------
 編號 5.4
 檢查目的：開啟Diagnostics Error Capture Level
 檢查方式：檢視diaglevel參數設定
@@ -548,7 +548,7 @@ db2 get dbm cfg | grep '(DIAGLEVEL)'
 
 cat <<rule_5.5
 
-
+-----------------------------------------------------------------
 編號 5.5
 檢查目的：設定Notify Level
 檢查方式：檢視notifylevel參數設定
@@ -560,7 +560,7 @@ db2 get dbm cfg | grep '(NOTIFYLEVEL)'
 
 cat <<rule_5.6
 
-
+-----------------------------------------------------------------
 編號 5.6
 檢查目的：關閉請求遠端資料庫功能
 檢查方式：檢視federated參數設定
@@ -572,7 +572,7 @@ db2 get dbm cfg | grep '(FEDERATED)'
 
 cat <<rule_5.7
 
-
+-----------------------------------------------------------------
 編號 5.7
 檢查目的：限制非SYSADM權限對資料庫進行目錄化
 檢查方式：檢視catalog_noauth參數設定，
@@ -584,7 +584,7 @@ db2 get dbm cfg | grep '(CATALOG_NOAUTH)'
 
 cat <<rule_5.8
 
-
+-----------------------------------------------------------------
 編號 5.8
 檢查目的：有可能執行ROLLFORWARD RECOVERY作業之資料庫，應將LOG ARCHIVE到磁碟
 檢查方式：檢視logretain、userexit參數設定
@@ -604,7 +604,7 @@ done
 
 cat <<rule_5.9
 
-
+-----------------------------------------------------------------
 編號 5.9
 檢查目的：關閉Discover Database
 檢查方式：檢視discover_db參數設定
@@ -624,7 +624,7 @@ done
 
 cat <<rule_5.10
 
-
+-----------------------------------------------------------------
 編號 5.10
 檢查目的：DB2相關檔案與目錄擁有者設定
 檢查方式：檢視DB2目錄與檔案，Owner應僅能為以下：
@@ -639,7 +639,7 @@ ls -al ~
 
 cat <<rule_5.11
 
-
+-----------------------------------------------------------------
 編號 5.11
 檢查目的：DB2目錄控制權
 檢查方式：檢視DB2系統安裝及資料庫所在目錄，權限應僅指派給Administrator與DB2安裝帳號。
