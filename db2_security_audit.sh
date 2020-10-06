@@ -6,7 +6,7 @@
 # DEBUG 需事先填入 AP 使用的帳號
 # DEBUG 也許可以利用 /etc/passwd UID > 多少來判斷
 ALL_AP_ACCOUNT="MAX MAX1"   # DEBUG
-ALL_DBA_ACCOUNT="SPDB1 SPDB2"
+ALL_DBA_ACCOUNT="INST411 SPDB1 SPDB2"
 
 
 ALL_AP_ACCOUNT=$(echo $ALL_AP_ACCOUNT | tr 'a-z' 'A-Z')
@@ -231,7 +231,7 @@ cat <<rule_3.2
 
 檢查結果：
 rule_3.2
-query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as connect from syscat.dbauth where  GRANTEE <> '${INSTNAME_uppercase}' $( for i in $ALL_AP_ACCOUNT ; do echo "AND GRANTEE <> '$i'"; done)" "3.2"
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, CONNECTAUTH as connect from syscat.dbauth where GRANTEE <> '${INSTNAME_uppercase}' AND GRANTEE <> 'DB2IADM1' $( for i in $ALL_AP_ACCOUNT ; do echo "AND GRANTEE <> '$i'"; done) $( for i in $ALL_DBA_ACCOUNT ; do echo "AND GRANTEE <> '$i'"; done)" "3.2"
 
 
 
@@ -274,7 +274,7 @@ cat <<rule_3.5
 
 檢查結果：
 rule_3.5
-query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, Cast(tbspace as char(20)) as TBSPACE,USEAUTH as USE from SYSCAT.TBSPACEAUTH where GRANTEE <> '${INSTNAME_uppercase}' " "3.5"
+query_all_db "select Cast(grantor as char(8)) as Grantor, substr(grantee, 1, 16) as Grantee, GRANTEETYPE as GT, Cast(tbspace as char(20)) as TBSPACE,USEAUTH as USE from SYSCAT.TBSPACEAUTH where TBSPACE <> 'DSMSPACE' AND GRANTEE <> '${INSTNAME_uppercase}' " "3.5"
 
 
 
