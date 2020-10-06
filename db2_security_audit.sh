@@ -8,6 +8,10 @@
 ALL_AP_ACCOUNT="MAX MAX1"   # DEBUG
 ALL_DBA_ACCOUNT="INST411 SPDB1 SPDB2"
 
+# 請將要檢查的 db 填入 DATABASES 參數，以空格分開。
+# 若要全部檢查則請保留空白
+DATABASES=""
+
 
 ALL_AP_ACCOUNT=$(echo $ALL_AP_ACCOUNT | tr 'a-z' 'A-Z')
 ALL_DBA_ACCOUNT=$(echo $ALL_DBA_ACCOUNT | tr 'a-z' 'A-Z')
@@ -35,7 +39,9 @@ else
 fi
 
 
-DATABASES=$( db2 list db directory | awk '/alias/{a=$NF}/Indirec/{print a}' | sed 's/ //g')
+if [[ "$DATABASES" = "" ]] ; then
+  DATABASES=$( db2 list db directory | awk '/alias/{a=$NF}/Indirec/{print a}' | sed 's/ //g')
+fi
 
 
 query_all_db() {
