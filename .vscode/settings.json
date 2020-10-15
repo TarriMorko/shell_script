@@ -11,7 +11,7 @@
 
     // show error message when format error
     "shellformat.showError": true,
-    "python.pythonPath": "C:\\Anaconda3\\python.exe"
+    "python.pythonPath": "C:\\Users\\tw202\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe"
 
 
 }

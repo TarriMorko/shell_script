@@ -374,7 +374,7 @@ rule_3.7
 
 
 echo "檢測 Alterin 結果："
-query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '${INSTNAME_uppercase}'              AND AUTHIDTYPE='U' AND PRIVILEGE='ALTERIN' and OBJECTTYPE='SCHEMA' AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID' $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done) $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 檢測 Alterin 結果"
+query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '${INSTNAME_uppercase}'              AND AUTHIDTYPE='U' AND PRIVILEGE='ALTERIN' and OBJECTTYPE='SCHEMA' AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'  $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 檢測 Alterin 結果"
 
 
 echo "檢測 Index (tables, nicknames) 結果"
@@ -382,7 +382,7 @@ query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grant
 
 
 echo "檢測 Createin (schema) 結果"
-query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '${INSTNAME_uppercase}' AND AUTHIDTYPE='U' AND PRIVILEGE='CREATEIN' and OBJECTTYPE='SCHEMA' AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done) $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 檢測 Createin (schema) 結果 "
+query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '${INSTNAME_uppercase}' AND AUTHIDTYPE='U' AND PRIVILEGE='CREATEIN' and OBJECTTYPE='SCHEMA' AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done) " "3.7 檢測 Createin (schema) 結果 "
 
 
 echo "檢測 References (tables, nicknames)  結果"
@@ -408,27 +408,27 @@ query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grant
 
 echo ""
 echo "Delete (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='DELETE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID' $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done) $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Delete (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
+query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='DELETE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'  $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Delete (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
 
 
 echo ""
 echo "Insert (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='INSERT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'  $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done) $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Insert (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
+query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='INSERT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'   $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Insert (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
 
 
 echo ""
 echo "Update (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='UPDATE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'  $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done) $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Update (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
+query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='UPDATE' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'   $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Update (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
 
 
 echo ""
 echo "Select (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='SELECT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'  $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done) $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Select (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
+query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='SELECT' AND (OBJECTTYPE='TABLE' or OBJECTTYPE='VIEW') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'   $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Select (tables, views) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
 
 
 echo ""
 echo "Execute (packages, procedures, functions, methods) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
-query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='EXECUTE' AND (OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE' or OBJECTTYPE='VIEW' or OBJECTTYPE='FUNCTION' or OBJECTTYPE='METHOD') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'  $( for i in $ALL_DBA_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done) $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Execute (packages, procedures, functions, methods) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
+query_all_db "select substr(authid,1,20) as authid, authidtype, privilege, grantable, substr(objectschema,1,12) as objectschema, substr(objectname,1,30) as objectname, objecttype from sysibmadm.privileges where AUTHID <> '$INSTNAME_uppercase' AND AUTHIDTYPE='U' AND PRIVILEGE='EXECUTE' AND (OBJECTTYPE LIKE '%PACKAGE%' or OBJECTTYPE='PROCEDURE' or OBJECTTYPE='VIEW' or OBJECTTYPE='FUNCTION' or OBJECTTYPE='METHOD') AND OBJECTSCHEMA not like 'SYS%' AND OBJECTSCHEMA <> 'NULLID'   $( for i in $ALL_AP_ACCOUNT ; do echo "AND AUTHID <> '$i'"; done)" "3.7 Execute (packages, procedures, functions, methods) (2) 指派給資料庫管理人員與一般應用程式使用帳號"
 
 
 
